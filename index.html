@@ -779,7 +779,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
-            let y = 10;
+            let y = 12; // Initial top margin
 
             const imgElement = document.getElementById('pdfLogo');
             try {
@@ -791,14 +791,17 @@
                     ctx.drawImage(imgElement, 0, 0);
                     const imgData = canvas.toDataURL("image/png");
                     
-                    // Fixed proportional scaling based on natural aspect ratio to prevent distortion/stretching
+                    // Proportional scaling based on natural aspect ratio
                     const natW = imgElement.naturalWidth || 200;
                     const natH = imgElement.naturalHeight || 100;
                     const imgWidth = 24; // fixed width in mm
                     const imgHeight = (natH / natW) * imgWidth; // proportional height calculation
                     
-                    doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 3, y, imgWidth, imgHeight);
-                    y += imgHeight + 2;
+                    // Corrected: (pageWidth - imgWidth) / 2 centers the logo horizontally
+                    doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, y, imgWidth, imgHeight);
+                    
+                    // Increased gap between the logo and the school title text
+                    y += imgHeight + 4; 
                 }
             } catch (e) {
                 y += 5;
