@@ -617,6 +617,14 @@
                 const dateStr = nowObj.toLocaleDateString();
                 const timeStr = nowObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
+                // Check if the student has already checked in/out for the current mode today
+                const alreadyScanned = logs.some(log => log.id === cleanId && log.date === dateStr && log.mode === currentMode);
+
+                if (alreadyScanned) {
+                    updateScreen("ALREADY SCANNED", `${student.name.toUpperCase()} HAS ALREADY ${currentMode}`, "#ffaa00");
+                    return;
+                }
+
                 const record = {
                     date: dateStr,
                     time: timeStr,
@@ -882,7 +890,7 @@
             `).join('');
 
             // Embed NSTP.png logo directly 
-            const logoHtml = '<img src="NSTP.png" style="width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">';
+            const logoHtml = '<img src="NSTP.png" style="width: 200px; height: 100px; object-fit: contain; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">';
 
             exportContainer.innerHTML = `
                 <div style="text-align: center; margin-bottom: 25px;">
