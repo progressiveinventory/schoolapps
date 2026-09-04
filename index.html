@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PEACI - Unified Operator Terminal</title>
+    <title>PEACI - Multifunctional App</title>
     
     <!-- PWA Web Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -490,6 +490,7 @@
                 activeUsername = null;
                 netStatus.classList.add('hidden');
                 toggleView('loginSection');
+                updateScreen("LOGIN REQUIRED", "PLEASE ENTER CREDENTIALS", "#ffaa00");
             } else {
                 const activeUser = JSON.parse(session);
                 activeUsername = activeUser.username;
@@ -617,7 +618,6 @@
                 const dateStr = nowObj.toLocaleDateString();
                 const timeStr = nowObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-                // Check if the student has already checked in/out for the current mode today
                 const alreadyScanned = logs.some(log => log.id === cleanId && log.date === dateStr && log.mode === currentMode);
 
                 if (alreadyScanned) {
@@ -652,7 +652,6 @@
             }
         }
 
-        // --- SCANNER SET TO ALWAYS USE BACK CAMERA ---
         function initScanner() {
             if (typeof Html5QrcodeScanner === 'undefined') {
                 console.error('Html5QrcodeScanner failed to load.');
@@ -699,7 +698,6 @@
             });
         }
 
-        // --- CONSOLIDATE RECORDED DATA FOR EXPORTS ---
         function getProcessedAttendanceData() {
             const logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
             let processedData = {};
@@ -738,7 +736,6 @@
             return Object.values(processedData).sort((a, b) => a.name.localeCompare(b.name));
         }
 
-        // --- EXPORT CONTROLLER ---
         function exportData(type) {
             closeExportModal();
             const records = getProcessedAttendanceData();
@@ -755,7 +752,6 @@
             }
         }
 
-        // --- SAVE DATA TO PDF (WITH RED HIGHLIGHT LOGIC) ---
         function generatePDF(records) {
             if (!window.jspdf) {
                 alert("PDF library loading. Please check connection.");
@@ -767,7 +763,6 @@
             const pageWidth = doc.internal.pageSize.getWidth();
             let y = 10;
 
-            // Centered Logo
             const imgElement = document.getElementById('pdfLogo');
             try {
                 if (imgElement) {
@@ -787,7 +782,6 @@
                 y += 5;
             }
 
-            // Heading Text
             doc.setFont("times", "bold");
             doc.setFontSize(12);
             doc.text("Philippine Engineering and Agro- Industrial College, Inc.", pageWidth / 2, y, { align: 'center' });
@@ -807,7 +801,6 @@
             doc.line(14, y, pageWidth - 14, y);
             y += 5;
 
-            // Process Rows
             const tableRows = records.map(row => [row.name, row.id, row.course, row.login, row.logout]);
             const tableColumn = ["Name", "ID Number", "Course", "Login", "Logout"];
 
@@ -825,18 +818,16 @@
                     3: { halign: 'center' },
                     4: { halign: 'center' }
                 },
-                // HIGHLIGHT MISSING LOG IN OR LOG OUT IN RED
                 didParseCell: function(data) {
                     if (data.section === 'body' && (data.column.index === 3 || data.column.index === 4)) {
                         if (data.cell.raw === 'NO LOG IN' || data.cell.raw === 'NO LOG OUT') {
-                            data.cell.styles.textColor = [220, 53, 69]; // Red Text
+                            data.cell.styles.textColor = [220, 53, 69];
                             data.cell.styles.fontStyle = 'bold';
                         }
                     }
                 }
             });
 
-            // Signature Footer
             let finalY = doc.lastAutoTable.finalY + 15;
             if (finalY > doc.internal.pageSize.getHeight() - 40) {
                 doc.addPage();
@@ -850,22 +841,31 @@
             doc.text("Prepared by:", 14, finalY);
             
             finalY += 12;
-            doc.setFont("times", "bold");
-            doc.text(session.name.toUpperCase(), 14, finalY);
             
-            finalY += 4;
+            // Center position for the signature block text
+            const sigX = 14;
+            const sigWidth = 70;
+            const centerX = sigX + (sigWidth / 2);
+
+            doc.setFont("times", "bold");
+            doc.text(session.name.toUpperCase(), centerX, finalY, { align: 'center' });
+            
+            // Draw underline beneath the name based on text width
+            const nameWidth = doc.getTextWidth(session.name.toUpperCase());
+            doc.setLineWidth(0.3);
+            doc.line(centerX - (nameWidth / 2), finalY + 1, centerX + (nameWidth / 2), finalY + 1);
+            
+            finalY += 6;
             doc.setFont("times", "normal");
-            doc.text( ${session.role}`, 14, finalY);
+            doc.text(`${session.role}`, centerX, finalY, { align: 'center' });
 
             doc.save(`NSTP_Attendance_${new Date().toISOString().slice(0,10)}.pdf`);
         }
 
-        // --- SAVE DATA TO JPG (FIXED A4 PROPORTIONS & LOGO EMBED) ---
         function generateJPG(records) {
             const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             const session = JSON.parse(localStorage.getItem('peaci_active_session')) || { name: 'OPERATOR', role: 'Coordinator' };
 
-            // 1. Create container mapped to A4 dimensions (1240px x 1754px at 150 DPI)
             const exportContainer = document.createElement('div');
             exportContainer.style.position = 'fixed';
             exportContainer.style.top = '0';
@@ -889,7 +889,6 @@
                 </tr>
             `).join('');
 
-            // Embed NSTP.png logo directly 
             const logoHtml = '<img src="NSTP.png" style="width: 200px; height: 100px; object-fit: contain; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">';
 
             exportContainer.innerHTML = `
@@ -914,16 +913,17 @@
                         ${tableRowsHtml}
                     </tbody>
                 </table>
-                <div style="font-size: 16px; margin-top: 30px;">
+                <div style="font-size: 16px; margin-top: 30px; display: inline-block;">
                     <p style="margin: 0;">Prepared by:</p>
-                    <p style="margin: 25px 0 4px 0; font-weight: bold; font-size: 18px;">${session.name.toUpperCase()}</p>
-                    <p style="margin: 0;">Coordinator / ${session.role}</p>
+                    <div style="margin-top: 30px; text-align: center; display: inline-block; min-width: 220px;">
+                        <p style="margin: 0 0 2px 0; font-weight: bold; font-size: 18px; text-decoration: underline; display: inline-block;">${session.name.toUpperCase()}</p>
+                        <p style="margin: 4px 0 0 0; font-size: 16px; text-align: center;">${session.role}</p>
+                    </div>
                 </div>
             `;
 
             document.body.appendChild(exportContainer);
 
-            // 2. Capture with html2canvas and trigger download
             html2canvas(exportContainer, { 
                 scale: 1,
                 width: 1240,
