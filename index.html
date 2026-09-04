@@ -773,53 +773,55 @@
                     ctx.drawImage(imgElement, 0, 0);
                     const imgData = canvas.toDataURL("image/png");
                     
-                    const imgWidth = 30;
-                    const imgHeight = 20;
+                    // Fixed & optimized proportional size for the PDF header
+                    const imgWidth = 20;
+                    const imgHeight = 15;
                     doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, y, imgWidth, imgHeight);
-                    y += imgHeight + 3;
+                    y += imgHeight + 2;
                 }
             } catch (e) {
                 y += 5;
             }
 
             doc.setFont("times", "bold");
-            doc.setFontSize(12);
+            doc.setFontSize(11);
             doc.text("Philippine Engineering and Agro- Industrial College, Inc.", pageWidth / 2, y, { align: 'center' });
             
-            y += 5;
-            doc.setFontSize(10);
+            y += 4;
+            doc.setFontSize(9);
             doc.text("NSTP-CWTS", pageWidth / 2, y, { align: 'center' });
             
-            y += 5;
+            y += 4;
             doc.setFont("times", "normal");
-            doc.setFontSize(10);
+            doc.setFontSize(9);
             const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             doc.text(`Date: ${dateStr}`, pageWidth / 2, y, { align: 'center' });
 
             y += 3;
             doc.setLineWidth(0.5);
             doc.line(14, y, pageWidth - 14, y);
-            y += 5;
+            y += 4;
 
-            const tableRows = records.map(row => [row.name, row.id, row.course, row.login, row.logout]);
-            const tableColumn = ["Name", "ID Number", "Course", "Login", "Logout"];
+            const tableRows = records.map((row, index) => [index + 1, row.name, row.id, row.course, row.login, row.logout]);
+            const tableColumn = ["#", "Name", "ID Number", "Course", "Login", "Logout"];
 
             doc.autoTable({
                 head: [tableColumn],
                 body: tableRows,
                 startY: y,
                 theme: 'grid',
-                styles: { font: 'times', fontSize: 10, cellPadding: 4 },
-                headStyles: { fillColor: [44, 62, 80], halign: 'center' },
+                styles: { font: 'times', fontSize: 8.5, cellPadding: 2.2 },
+                headStyles: { fillColor: [44, 62, 80], halign: 'center', fontSize: 9 },
                 columnStyles: {
-                    0: { cellWidth: 'auto' },
-                    1: { halign: 'center' },
-                    2: { halign: 'center' },
-                    3: { halign: 'center' },
-                    4: { halign: 'center' }
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { cellWidth: 'auto' },
+                    2: { halign: 'center', cellWidth: 28 },
+                    3: { halign: 'center', cellWidth: 28 },
+                    4: { halign: 'center', cellWidth: 22 },
+                    5: { halign: 'center', cellWidth: 22 }
                 },
                 didParseCell: function(data) {
-                    if (data.section === 'body' && (data.column.index === 3 || data.column.index === 4)) {
+                    if (data.section === 'body' && (data.column.index === 4 || data.column.index === 5)) {
                         if (data.cell.raw === 'NO LOG IN' || data.cell.raw === 'NO LOG OUT') {
                             data.cell.styles.textColor = [220, 53, 69];
                             data.cell.styles.fontStyle = 'bold';
@@ -828,34 +830,31 @@
                 }
             });
 
-            let finalY = doc.lastAutoTable.finalY + 15;
-            if (finalY > doc.internal.pageSize.getHeight() - 40) {
+            let finalY = doc.lastAutoTable.finalY + 10;
+            if (finalY > doc.internal.pageSize.getHeight() - 30) {
                 doc.addPage();
-                finalY = 25;
+                finalY = 20;
             }
 
             const session = JSON.parse(localStorage.getItem('peaci_active_session')) || { name: 'OPERATOR', role: 'Coordinator' };
             
             doc.setFont("times", "normal");
-            doc.setFontSize(10);
+            doc.setFontSize(9);
             doc.text("Prepared by:", 14, finalY);
             
-            finalY += 12;
-            
-            // Center position for the signature block text
+            finalY += 8;
             const sigX = 14;
-            const sigWidth = 70;
+            const sigWidth = 60;
             const centerX = sigX + (sigWidth / 2);
 
             doc.setFont("times", "bold");
             doc.text(session.name.toUpperCase(), centerX, finalY, { align: 'center' });
             
-            // Draw underline beneath the name based on text width
             const nameWidth = doc.getTextWidth(session.name.toUpperCase());
             doc.setLineWidth(0.3);
             doc.line(centerX - (nameWidth / 2), finalY + 1, centerX + (nameWidth / 2), finalY + 1);
             
-            finalY += 6;
+            finalY += 5;
             doc.setFont("times", "normal");
             doc.text(`${session.role}`, centerX, finalY, { align: 'center' });
 
@@ -873,51 +872,53 @@
             exportContainer.style.width = '1240px';
             exportContainer.style.minHeight = '1754px';
             exportContainer.style.background = '#ffffff';
-            exportContainer.style.padding = '80px';
+            exportContainer.style.padding = '50px 60px';
             exportContainer.style.boxSizing = 'border-box';
             exportContainer.style.fontFamily = 'Times New Roman, Times, serif';
             exportContainer.style.color = '#000000';
             exportContainer.style.zIndex = '-999';
 
-            let tableRowsHtml = records.map(r => `
+            let tableRowsHtml = records.map((r, index) => `
                 <tr>
-                    <td style="border: 1px solid #333; padding: 12px; font-size: 16px;">${r.name}</td>
-                    <td style="border: 1px solid #333; padding: 12px; font-size: 16px; text-align: center;">${r.id}</td>
-                    <td style="border: 1px solid #333; padding: 12px; font-size: 16px; text-align: center;">${r.course}</td>
-                    <td style="border: 1px solid #333; padding: 12px; font-size: 16px; text-align: center; ${r.login === 'NO LOG IN' ? 'color: #dc3545; font-weight: bold;' : ''}">${r.login}</td>
-                    <td style="border: 1px solid #333; padding: 12px; font-size: 16px; text-align: center; ${r.logout === 'NO LOG OUT' ? 'color: #dc3545; font-weight: bold;' : ''}">${r.logout}</td>
+                    <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 40px;">${index + 1}</td>
+                    <td style="border: 1px solid #333; padding: 6px 10px; font-size: 13px;">${r.name}</td>
+                    <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 160px;">${r.id}</td>
+                    <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 140px;">${r.course}</td>
+                    <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 130px; ${r.login === 'NO LOG IN' ? 'color: #dc3545; font-weight: bold;' : ''}">${r.login}</td>
+                    <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 130px; ${r.logout === 'NO LOG OUT' ? 'color: #dc3545; font-weight: bold;' : ''}">${r.logout}</td>
                 </tr>
             `).join('');
 
-            const logoHtml = '<img src="NSTP.png" style="width: 200px; height: 100px; object-fit: contain; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">';
+            const logoHtml = '<img src="NSTP.png" style="width: 140px; height: 70px; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">';
 
             exportContainer.innerHTML = `
-                <div style="text-align: center; margin-bottom: 25px;">
+                <div style="text-align: center; margin-bottom: 15px;">
                     ${logoHtml}
-                    <h2 style="margin: 0; font-size: 22px; font-weight: bold;">Philippine Engineering and Agro- Industrial College, Inc.</h2>
-                    <h3 style="margin: 6px 0; font-size: 18px; font-weight: normal;">NSTP-CWTS</h3>
-                    <p style="margin: 4px 0; font-size: 16px;">Date: ${dateStr}</p>
-                    <hr style="border: none; border-top: 1.5px solid #000; margin-top: 15px;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: bold;">Philippine Engineering and Agro- Industrial College, Inc.</h2>
+                    <h3 style="margin: 4px 0; font-size: 15px; font-weight: normal;">NSTP-CWTS</h3>
+                    <p style="margin: 2px 0; font-size: 13px;">Date: ${dateStr}</p>
+                    <hr style="border: none; border-top: 1.5px solid #000; margin-top: 10px;">
                 </div>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                     <thead>
                         <tr style="background: #2c3e50; color: #ffffff;">
-                            <th style="border: 1px solid #333; padding: 14px; font-size: 17px; text-align: left;">Name</th>
-                            <th style="border: 1px solid #333; padding: 14px; font-size: 17px; text-align: center;">ID Number</th>
-                            <th style="border: 1px solid #333; padding: 14px; font-size: 17px; text-align: center;">Course</th>
-                            <th style="border: 1px solid #333; padding: 14px; font-size: 17px; text-align: center;">Login</th>
-                            <th style="border: 1px solid #333; padding: 14px; font-size: 17px; text-align: center;">Logout</th>
+                            <th style="border: 1px solid #333; padding: 8px; font-size: 13px; text-align: center;">#</th>
+                            <th style="border: 1px solid #333; padding: 8px 10px; font-size: 13px; text-align: left;">Name</th>
+                            <th style="border: 1px solid #333; padding: 8px; font-size: 13px; text-align: center;">ID Number</th>
+                            <th style="border: 1px solid #333; padding: 8px; font-size: 13px; text-align: center;">Course</th>
+                            <th style="border: 1px solid #333; padding: 8px; font-size: 13px; text-align: center;">Login</th>
+                            <th style="border: 1px solid #333; padding: 8px; font-size: 13px; text-align: center;">Logout</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${tableRowsHtml}
                     </tbody>
                 </table>
-                <div style="font-size: 16px; margin-top: 30px; display: inline-block;">
+                <div style="font-size: 13px; margin-top: 15px; display: inline-block;">
                     <p style="margin: 0;">Prepared by:</p>
-                    <div style="margin-top: 30px; text-align: center; display: inline-block; min-width: 220px;">
-                        <p style="margin: 0 0 2px 0; font-weight: bold; font-size: 18px; text-decoration: underline; display: inline-block;">${session.name.toUpperCase()}</p>
-                        <p style="margin: 4px 0 0 0; font-size: 16px; text-align: center;">${session.role}</p>
+                    <div style="margin-top: 20px; text-align: center; display: inline-block; min-width: 180px;">
+                        <p style="margin: 0 0 2px 0; font-weight: bold; font-size: 14px; text-decoration: underline; display: inline-block;">${session.name.toUpperCase()}</p>
+                        <p style="margin: 2px 0 0 0; font-size: 13px; text-align: center;">${session.role}</p>
                     </div>
                 </div>
             `;
