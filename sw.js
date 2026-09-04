@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nstp-attendance-v1';
+const CACHE_NAME = 'peaci-app-v1';
 
 // All local assets required to run the app offline
 const ASSETS_TO_CACHE = [
@@ -7,7 +7,8 @@ const ASSETS_TO_CACHE = [
   './NSTP-Attendance.html',
   './Schedule.html',
   './html5-qrcode.min.js',
-  './manifest.json'
+  './manifest.json',
+  './peaci.png'
 ];
 
 // 1. Install Event: Cache all essential files upfront
@@ -49,9 +50,9 @@ self.addEventListener('fetch', (event) => {
       
       // Fall back to network if asset isn't pre-cached
       return fetch(event.request).catch(() => {
-        // Optional offline fallback for navigation requests
+        // Offline fallback for navigation requests
         if (event.request.mode === 'navigate') {
-          return caches.match('./NSTP-Attendance.html');
+          return caches.match('./index.html');
         }
       });
     })
