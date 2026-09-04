@@ -855,7 +855,7 @@
             
             finalY += 4;
             doc.setFont("times", "normal");
-            doc.text(`Coordinator / ${session.role}`, 14, finalY);
+            doc.text( ${session.role}`, 14, finalY);
 
             doc.save(`NSTP_Attendance_${new Date().toISOString().slice(0,10)}.pdf`);
         }
