@@ -156,7 +156,7 @@
             box-shadow: 0px 0px 0px #888, 0px 2px 5px rgba(0, 0, 0, 0.4), inset 2px 2px 5px rgba(0,0,0,0.2); 
         }
 
-        input[type="text"], input[type="password"] { 
+        input[type="text"], input[type="password"], input[type="date"], select { 
             width: 100%; 
             padding: 10px 12px; 
             margin-bottom: 10px; 
@@ -227,7 +227,6 @@
 
         .tag-login { color: #1e8449; font-weight: bold; }
         .tag-logout { color: #c0392b; font-weight: bold; }
-        .tag-missing { color: #dc3545; font-weight: bold; background: #f8d7da; padding: 2px 4px; border-radius: 3px; }
 
         .hidden { display: none !important; }
 
@@ -318,9 +317,8 @@
 
             <button class="action-btn" onclick="openAttendance()">ATTENDANCE TERMINAL</button>
             
-            <a href="Schedule.html" style="text-decoration: none;">
-                <button class="action-btn">SCHEDULE (EXTERNAL)</button>
-            </a>
+            <!-- CHANGED: REPLACED SCHEDULE WITH DIRECT REGISTRATION DASHBOARD TRIGGER -->
+            <button class="success-btn" onclick="openDashboardRegisterModal()">REGISTER NEW MEMBER</button>
 
             <hr style="border: 1px solid #b5b5b5; margin: 15px 0;">
 
@@ -350,26 +348,30 @@
                 </div>
                 <div id="reader"></div>
                 
-                <label style="margin-top: 10px;">MANUAL / USB SCANNER INPUT</label>
+                <label style="margin-top: 10px;">INPUT ID NUMBER</label>
                 <div style="display: flex; gap: 8px;">
                     <input type="text" id="manualScanId" placeholder="Scan or type ID Number" onkeypress="handleManualScan(event)" style="margin-bottom: 0; flex: 1;">
                     <button class="action-btn" onclick="submitManualScan()" style="width: 80px; margin-bottom: 0;">ENTER</button>
                 </div>
-            </div>
 
-            <!-- COORDINATOR STUDENT REGISTRATION -->
-            <div class="control-panel">
-                <label>REGISTER STUDENT (TO THIS OPERATOR)</label>
-                <input type="text" id="regName" placeholder="Student Full Name">
-                <input type="text" id="regId" placeholder="Student ID Number">
-                <input type="text" id="regCourse" placeholder="Course (e.g., BSIT, BSCS)">
-                <button class="action-btn" onclick="registerStudent()">SAVE STUDENT</button>
+                <!-- SEARCH/SELECT MEMBER ALPHABETICALLY -->
+                <label style="margin-top: 10px;">SEARCH OR SELECT REGISTERED MEMBER (ALPHABETICAL)</label>
+                <div style="display: flex; gap: 8px;">
+                    <select id="memberSelectDropdown" onchange="handleDropdownSelect(this.value)" style="margin-bottom: 0; flex: 1;">
+                        <option value="">-- Type or scroll name --</option>
+                    </select>
+                    <button class="action-btn" onclick="submitSelectedMember()" style="width: 80px; margin-bottom: 0;">SELECT</button>
+                </div>
             </div>
 
             <!-- ATTENDANCE LOGS -->
             <div class="control-panel">
-                <label>RECENT ATTENDANCE LOGS</label>
-                <div class="logs-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label id="logContainerTitle" style="margin-bottom: 0;">RECENT ATTENDANCE LOGS (TODAY)</label>
+                    <button class="nav-btn" onclick="openLogFilterModal()" style="width: auto; padding: 3px 8px; font-size: 10px; margin-bottom: 0;">VIEW BY DATE</button>
+                </div>
+                
+                <div class="logs-container" style="margin-top: 8px;">
                     <table>
                         <thead>
                             <tr>
@@ -387,6 +389,7 @@
                     </table>
                 </div>
                 <button class="action-btn" onclick="openExportModal()" style="margin-top: 10px; margin-bottom: 0;">SAVE DATA</button>
+                <button class="nav-btn" onclick="openMembersModal()" style="margin-top: 8px; margin-bottom: 0;">REGISTERED MEMBERS</button>
             </div>
 
             <button class="nav-btn" onclick="closeAttendance()">RETURN TO MAIN DASHBOARD</button>
@@ -407,6 +410,64 @@
         </div>
     </div>
 
+    <!-- VIEW LOGS BY DATE MODAL -->
+    <div id="logFilterModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 320px; text-align: left;">
+            <h3 style="text-align: center;">VIEW LOGS BY DATE</h3>
+            <label style="margin-top: 10px;">Select Target Date</label>
+            <input type="date" id="filterDateInput">
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="action-btn" onclick="applyDateFilter()" style="margin-bottom: 0;">VIEW LOGS</button>
+                <button class="nav-btn" onclick="resetToTodayLogs()" style="margin-bottom: 0;">RESET TO TODAY</button>
+            </div>
+            <button class="nav-btn" onclick="closeLogFilterModal()" style="margin-top: 8px; margin-bottom: 0;">CANCEL</button>
+        </div>
+    </div>
+
+    <!-- REGISTERED MEMBERS LIST MODAL -->
+    <div id="membersModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: left;">
+            <h3 style="text-align: center;">REGISTERED MEMBERS</h3>
+            <p style="font-size: 11px; color: #ccc; margin-bottom: 10px; text-align: center;">All registered members in alphabetical order:</p>
+            <div class="logs-container" style="max-height: 250px; margin-bottom: 15px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>ID Number</th>
+                            <th>Course</th>
+                        </tr>
+                    </thead>
+                    <tbody id="membersTableBody">
+                        <!-- Dynamic Member Rows -->
+                    </tbody>
+                </table>
+            </div>
+            <button class="nav-btn" onclick="closeMembersModal()" style="margin-bottom: 0;">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- REGISTER STUDENT MODAL -->
+    <div id="registerStudentModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 340px; text-align: left;">
+            <h3 style="text-align: center;">REGISTER NEW MEMBER</h3>
+            <label style="margin-top: 10px;">Last Name</label>
+            <input type="text" id="regLastName" placeholder="Last Name">
+            <label>First Name</label>
+            <input type="text" id="regFirstName" placeholder="First Name">
+            <label>Middle Initial</label>
+            <input type="text" id="regMI" placeholder="Middle Initial">
+            <label>ID Number</label>
+            <input type="text" id="regId" placeholder="ID Number">
+            <label>Course</label>
+            <input type="text" id="regCourse" placeholder="Course">
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="success-btn" onclick="registerStudent()" style="margin-bottom: 0;">SAVE STUDENT</button>
+                <button class="nav-btn" onclick="closeRegisterStudentModal()" style="margin-bottom: 0;">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // DOM Elements
         const statusScreen = document.getElementById('statusScreen');
@@ -414,6 +475,12 @@
         const netStatus = document.getElementById('netStatus');
         const logTableBody = document.getElementById('logTableBody');
         const exportModal = document.getElementById('exportModal');
+        const logFilterModal = document.getElementById('logFilterModal');
+        const membersModal = document.getElementById('membersModal');
+        const membersTableBody = document.getElementById('membersTableBody');
+        const registerStudentModal = document.getElementById('registerStudentModal');
+        const memberSelectDropdown = document.getElementById('memberSelectDropdown');
+        const logContainerTitle = document.getElementById('logContainerTitle');
 
         // State variables
         let activeUsername = null;
@@ -421,6 +488,7 @@
         let lastScanTime = 0;
         let lastScannedId = '';
         let currentMode = 'LOG IN'; // Default attendance mode
+        let viewingFilterDate = null; // Null means viewing current active 24h cycle (Today)
 
         // --- UTILITY FUNCTIONS ---
         function updateScreen(text, subtext = "", color = '#33ff33') {
@@ -455,6 +523,32 @@
 
         function openExportModal() { exportModal.classList.remove('hidden'); }
         function closeExportModal() { exportModal.classList.add('hidden'); }
+
+        function openLogFilterModal() { 
+            document.getElementById('filterDateInput').value = new Date().toISOString().slice(0, 10);
+            logFilterModal.classList.remove('hidden'); 
+        }
+        function closeLogFilterModal() { logFilterModal.classList.add('hidden'); }
+
+        function openMembersModal() {
+            renderMembersList();
+            membersModal.classList.remove('hidden');
+        }
+        function closeMembersModal() { membersModal.classList.add('hidden'); }
+
+        function openRegisterStudentModal() {
+            registerStudentModal.classList.remove('hidden');
+        }
+        function closeRegisterStudentModal() {
+            registerStudentModal.classList.add('hidden');
+        }
+
+        function openDashboardRegisterModal() {
+            if (!localStorage.getItem(getStudentDBKey())) {
+                localStorage.setItem(getStudentDBKey(), JSON.stringify({}));
+            }
+            openRegisterStudentModal();
+        }
 
         // --- DYNAMIC STORAGE KEYS ---
         function getStudentDBKey() { return `peaci_students_${activeUsername}`; }
@@ -569,7 +663,9 @@
         function openAttendance() {
             toggleView('attendanceSection');
             setAttendanceMode('LOG IN');
+            viewingFilterDate = null; // Reset to live 24h window
             renderLogs();
+            populateMemberDropdown();
         }
 
         function closeAttendance() {
@@ -579,24 +675,35 @@
         }
 
         function registerStudent() {
-            const name = document.getElementById('regName').value.trim();
+            const lastName = document.getElementById('regLastName').value.trim();
+            const firstName = document.getElementById('regFirstName').value.trim();
+            const mi = document.getElementById('regMI').value.trim();
             const idNumber = document.getElementById('regId').value.trim();
             const course = document.getElementById('regCourse').value.trim();
 
-            if (!name || !idNumber || !course) {
-                updateScreen("REGISTRATION ERROR", "FILL OUT ALL FIELDS", "#ff3333");
+            if (!lastName || !firstName || !idNumber || !course) {
+                updateScreen("REGISTRATION ERROR", "FILL OUT REQUIRED FIELDS", "#ff3333");
                 return;
+            }
+
+            let formattedName = `${lastName}, ${firstName}`;
+            if (mi) {
+                formattedName += ` ${mi}.`;
             }
 
             const dbKey = getStudentDBKey();
             let db = JSON.parse(localStorage.getItem(dbKey)) || {};
-            db[idNumber] = { name: name, course: course };
+            db[idNumber] = { name: formattedName, course: course };
             localStorage.setItem(dbKey, JSON.stringify(db));
 
-            updateScreen("SUCCESS", `SAVED: ${name.toUpperCase()}`);
-            document.getElementById('regName').value = '';
+            updateScreen("SUCCESS", `SAVED: ${formattedName.toUpperCase()}`);
+            document.getElementById('regLastName').value = '';
+            document.getElementById('regFirstName').value = '';
+            document.getElementById('regMI').value = '';
             document.getElementById('regId').value = '';
             document.getElementById('regCourse').value = '';
+            closeRegisterStudentModal();
+            populateMemberDropdown();
         }
 
         function processAttendance(scannedId) {
@@ -620,8 +727,9 @@
                 const nowObj = new Date();
                 const dateStr = nowObj.toLocaleDateString();
                 const timeStr = nowObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const timestamp = nowObj.getTime();
 
-                const alreadyScanned = logs.some(log => log.id === cleanId && log.date === dateStr && log.mode === currentMode);
+                const alreadyScanned = logs.some(log => log.id === cleanId && log.mode === currentMode && (timestamp - log.timestamp < 86400000));
 
                 if (alreadyScanned) {
                     updateScreen("ALREADY SCANNED", `${student.name.toUpperCase()} HAS ALREADY ${currentMode}`, "#ffaa00");
@@ -631,6 +739,7 @@
                 const record = {
                     date: dateStr,
                     time: timeStr,
+                    timestamp: timestamp,
                     id: cleanId,
                     name: student.name,
                     course: student.course,
@@ -641,7 +750,10 @@
                 localStorage.setItem(logKey, JSON.stringify(logs));
 
                 updateScreen(`${currentMode} SUCCESS`, `${student.name.toUpperCase()} (${student.course})`);
-                renderLogs();
+                
+                if (!viewingFilterDate) {
+                    renderLogs();
+                }
             } else {
                 updateScreen("ACCESS DENIED", `ID ${cleanId} NOT REGISTERED`, "#ff3333");
             }
@@ -657,6 +769,66 @@
             const inputField = document.getElementById('manualScanId');
             processAttendance(inputField.value);
             inputField.value = '';
+        }
+
+        function populateMemberDropdown() {
+            const dbKey = getStudentDBKey();
+            const db = JSON.parse(localStorage.getItem(dbKey)) || {};
+            
+            const members = Object.keys(db).map(id => ({
+                id: id,
+                name: db[id].name,
+                course: db[id].course
+            })).sort((a, b) => a.name.localeCompare(b.name));
+
+            memberSelectDropdown.innerHTML = '<option value="">-- Type or scroll name --</option>';
+            members.forEach(m => {
+                const option = document.createElement('option');
+                option.value = m.id;
+                option.textContent = `${m.name} (${m.id} - ${m.course})`;
+                memberSelectDropdown.appendChild(option);
+            });
+        }
+
+        function handleDropdownSelect(idValue) {
+            // Optional callback
+        }
+
+        function submitSelectedMember() {
+            const selectedId = memberSelectDropdown.value;
+            if (!selectedId) {
+                updateScreen("SELECTION ERROR", "PLEASE SELECT A MEMBER", "#ff3333");
+                return;
+            }
+            processAttendance(selectedId);
+            memberSelectDropdown.value = "";
+        }
+
+        function renderMembersList() {
+            const dbKey = getStudentDBKey();
+            const db = JSON.parse(localStorage.getItem(dbKey)) || {};
+            
+            const members = Object.keys(db).map(id => ({
+                id: id,
+                name: db[id].name,
+                course: db[id].course
+            })).sort((a, b) => a.name.localeCompare(b.name));
+
+            membersTableBody.innerHTML = '';
+            if (members.length === 0) {
+                membersTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">No registered members found.</td></tr>`;
+                return;
+            }
+
+            members.forEach(m => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${m.name}</td>
+                    <td>${m.id}</td>
+                    <td>${m.course}</td>
+                `;
+                membersTableBody.appendChild(row);
+            });
         }
 
         function startCameraScanner() {
@@ -697,9 +869,34 @@
 
         function renderLogs() {
             let logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
+            const now = Date.now();
+            const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+
             logTableBody.innerHTML = '';
 
-            logs.slice(0, 15).forEach(log => {
+            let filteredLogs = [];
+
+            if (viewingFilterDate) {
+                logContainerTitle.textContent = `LOGS FOR: ${viewingFilterDate}`;
+                filteredLogs = logs.filter(log => {
+                    let logDateObj = log.timestamp ? new Date(log.timestamp) : new Date();
+                    let formattedLogDate = logDateObj.toISOString().slice(0, 10);
+                    return formattedLogDate === viewingFilterDate;
+                });
+            } else {
+                logContainerTitle.textContent = "RECENT ATTENDANCE LOGS (LAST 24H)";
+                filteredLogs = logs.filter(log => {
+                    if (!log.timestamp) return true;
+                    return (now - log.timestamp) <= twentyFourHoursMs;
+                });
+            }
+
+            if (filteredLogs.length === 0) {
+                logTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No attendance records found for this period.</td></tr>`;
+                return;
+            }
+
+            filteredLogs.slice(0, 15).forEach(log => {
                 const row = document.createElement('tr');
                 let tagClass = log.mode === 'LOG IN' ? 'tag-login' : 'tag-logout';
                 let modeLabel = log.mode || 'LOG IN';
@@ -716,25 +913,48 @@
             });
         }
 
+        function applyDateFilter() {
+            const dateInputVal = document.getElementById('filterDateInput').value;
+            if (!dateInputVal) {
+                alert("Please select a valid date.");
+                return;
+            }
+            viewingFilterDate = dateInputVal;
+            closeLogFilterModal();
+            renderLogs();
+            updateScreen("LOGS FILTERED", `SHOWING RECORDS FOR ${viewingFilterDate}`, "#ffaa00");
+        }
+
+        function resetToTodayLogs() {
+            viewingFilterDate = null;
+            closeLogFilterModal();
+            renderLogs();
+            updateScreen("LIVE LOGS ACTIVE", "SHOWING PAST 24 HOURS", "#33ff33");
+        }
+
         function getProcessedAttendanceData() {
-            const logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
+            let logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
+            const now = Date.now();
+            const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+
+            let targetLogs = logs.filter(log => {
+                if (viewingFilterDate) {
+                    let logDateObj = log.timestamp ? new Date(log.timestamp) : new Date();
+                    return logDateObj.toISOString().slice(0, 10) === viewingFilterDate;
+                } else {
+                    if (!log.timestamp) return true;
+                    return (now - log.timestamp) <= twentyFourHoursMs;
+                }
+            });
+
             let processedData = {};
 
-            [...logs].reverse().forEach(log => {
+            [...targetLogs].reverse().forEach(log => {
                 let key = log.id;
 
                 if (!processedData[key]) {
-                    let formattedName = log.name.trim();
-                    if (!formattedName.includes(',')) {
-                        let parts = formattedName.split(/\s+/);
-                        if (parts.length > 1) {
-                            const lastName = parts.pop();
-                            formattedName = `${lastName}, ${parts.join(' ')}`;
-                        }
-                    }
-
                     processedData[key] = {
-                        name: formattedName.toUpperCase(),
+                        name: log.name.toUpperCase(),
                         id: log.id,
                         course: log.course,
                         login: "NO LOG IN",
@@ -779,7 +999,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
-            let y = 12; // Initial top margin
+            let y = 12;
 
             const imgElement = document.getElementById('pdfLogo');
             try {
@@ -791,16 +1011,12 @@
                     ctx.drawImage(imgElement, 0, 0);
                     const imgData = canvas.toDataURL("image/png");
                     
-                    // Proportional scaling based on natural aspect ratio
                     const natW = imgElement.naturalWidth || 200;
                     const natH = imgElement.naturalHeight || 100;
-                    const imgWidth = 24; // fixed width in mm
-                    const imgHeight = (natH / natW) * imgWidth; // proportional height calculation
+                    const imgWidth = 24;
+                    const imgHeight = (natH / natW) * imgWidth;
                     
-                    // Corrected: (pageWidth - imgWidth) / 2 centers the logo horizontally
                     doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, y, imgWidth, imgHeight);
-                    
-                    // Increased gap between the logo and the school title text
                     y += imgHeight + 4; 
                 }
             } catch (e) {
@@ -818,8 +1034,8 @@
             y += 4;
             doc.setFont("times", "normal");
             doc.setFontSize(9);
-            const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            doc.text(`Date: ${dateStr}`, pageWidth / 2, y, { align: 'center' });
+            const reportDateStr = viewingFilterDate ? viewingFilterDate : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            doc.text(`Date: ${reportDateStr}`, pageWidth / 2, y, { align: 'center' });
 
             y += 3;
             doc.setLineWidth(0.5);
@@ -882,11 +1098,11 @@
             doc.setFont("times", "normal");
             doc.text(`${session.role}`, centerX, finalY, { align: 'center' });
 
-            doc.save(`NSTP_Attendance_${new Date().toISOString().slice(0,10)}.pdf`);
+            doc.save(`NSTP_Attendance_${viewingFilterDate || new Date().toISOString().slice(0,10)}.pdf`);
         }
 
         function generateJPG(records) {
-            const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            const reportDateStr = viewingFilterDate ? viewingFilterDate : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             const session = JSON.parse(localStorage.getItem('peaci_active_session')) || { name: 'OPERATOR', role: 'Coordinator' };
 
             const exportContainer = document.createElement('div');
@@ -920,7 +1136,7 @@
                     ${logoHtml}
                     <h2 style="margin: 0; font-size: 18px; font-weight: bold;">Philippine Engineering and Agro- Industrial College, Inc.</h2>
                     <h3 style="margin: 4px 0; font-size: 15px; font-weight: normal;">NSTP-CWTS</h3>
-                    <p style="margin: 2px 0; font-size: 13px;">Date: ${dateStr}</p>
+                    <p style="margin: 2px 0; font-size: 13px;">Date: ${reportDateStr}</p>
                     <hr style="border: none; border-top: 1.5px solid #000; margin-top: 10px;">
                 </div>
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
@@ -957,7 +1173,7 @@
                 useCORS: true
             }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `NSTP_Attendance_A4_${new Date().toISOString().slice(0,10)}.jpg`;
+                link.download = `NSTP_Attendance_${viewingFilterDate || new Date().toISOString().slice(0,10)}.jpg`;
                 link.href = canvas.toDataURL('image/jpeg', 0.95);
                 link.click();
                 document.body.removeChild(exportContainer);
