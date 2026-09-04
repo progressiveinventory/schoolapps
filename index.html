@@ -274,7 +274,14 @@
                 readerDiv.classList.remove('hidden');
                 scanBtn.textContent = "STOP SCANNER";
                 
-                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+                // FIXED: Explicitly set square dimensions, 1:1 aspect ratio, and QR-only format
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+                    fps: 10, 
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0,
+                    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] 
+                });
+                
                 html5QrcodeScanner.render((decodedText) => {
                     updateScreen("SCAN SUCCESS", decodedText, "#33ff33");
                 });
