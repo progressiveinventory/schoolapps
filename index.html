@@ -344,10 +344,17 @@
             <!-- CAMERA SCANNER SECTION -->
             <div class="control-panel">
                 <label>CAMERA SCANNER (BACK CAMERA)</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <button class="success-btn" onclick="startCameraScanner()" style="margin-bottom: 0;">START CAMERA</button>
+                    <button class="danger-btn" onclick="stopCameraScanner()" style="margin-bottom: 0;">STOP CAMERA</button>
+                </div>
                 <div id="reader"></div>
                 
                 <label style="margin-top: 10px;">MANUAL / USB SCANNER INPUT</label>
-                <input type="text" id="manualScanId" placeholder="Scan or type ID Number & press Enter" onkeypress="handleManualScan(event)">
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="manualScanId" placeholder="Scan or type ID Number" onkeypress="handleManualScan(event)" style="margin-bottom: 0; flex: 1;">
+                    <button class="action-btn" onclick="submitManualScan()" style="width: 80px; margin-bottom: 0;">ENTER</button>
+                </div>
             </div>
 
             <!-- COORDINATOR STUDENT REGISTRATION -->
@@ -563,14 +570,10 @@
             toggleView('attendanceSection');
             setAttendanceMode('LOG IN');
             renderLogs();
-            initScanner();
         }
 
         function closeAttendance() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear().catch(err => console.error("Failed to clear scanner", err));
-                html5QrcodeScanner = null;
-            }
+            stopCameraScanner();
             toggleView('dashboardSection');
             updateScreen("SYSTEM READY", "SELECT A SERVICE BELOW");
         }
@@ -646,15 +649,19 @@
 
         function handleManualScan(e) {
             if (e.key === 'Enter') {
-                const inputField = document.getElementById('manualScanId');
-                processAttendance(inputField.value);
-                inputField.value = '';
+                submitManualScan();
             }
         }
 
-        function initScanner() {
+        function submitManualScan() {
+            const inputField = document.getElementById('manualScanId');
+            processAttendance(inputField.value);
+            inputField.value = '';
+        }
+
+        function startCameraScanner() {
             if (typeof Html5QrcodeScanner === 'undefined') {
-                console.error('Html5QrcodeScanner failed to load.');
+                alert("Scanner library loading or unavailable.");
                 return;
             }
 
@@ -664,16 +671,27 @@
                     { 
                         fps: 10, 
                         qrbox: { width: 200, height: 150 },
-                        facingMode: "environment",
-                        videoConstraints: {
-                            facingMode: { exact: "environment" }
-                        }
+                        facingMode: "environment"
                     },
                     false
                 );
                 html5QrcodeScanner.render((decodedText) => {
                     processAttendance(decodedText);
                 }, (error) => { /* Scanning... */ });
+                updateScreen("CAMERA ACTIVE", "READY TO SCAN QR/BARCODE", "#33ff33");
+            }
+        }
+
+        function stopCameraScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear().then(() => {
+                    html5QrcodeScanner = null;
+                    updateScreen("CAMERA STOPPED", "USE MANUAL INPUT OR START CAMERA");
+                }).catch(err => {
+                    console.error("Failed to clear scanner", err);
+                    html5QrcodeScanner = null;
+                    updateScreen("CAMERA STOPPED", "USE MANUAL INPUT OR START CAMERA");
+                });
             }
         }
 
@@ -773,10 +791,13 @@
                     ctx.drawImage(imgElement, 0, 0);
                     const imgData = canvas.toDataURL("image/png");
                     
-                    // Fixed & optimized proportional size for the PDF header
-                    const imgWidth = 20;
-                    const imgHeight = 15;
-                    doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 2, y, imgWidth, imgHeight);
+                    // Fixed proportional scaling based on natural aspect ratio to prevent distortion/stretching
+                    const natW = imgElement.naturalWidth || 200;
+                    const natH = imgElement.naturalHeight || 100;
+                    const imgWidth = 24; // fixed width in mm
+                    const imgHeight = (natH / natW) * imgWidth; // proportional height calculation
+                    
+                    doc.addImage(imgData, 'PNG', (pageWidth - imgWidth) / 3, y, imgWidth, imgHeight);
                     y += imgHeight + 2;
                 }
             } catch (e) {
