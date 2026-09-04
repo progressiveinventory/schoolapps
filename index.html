@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PEACI Operator Dashboard & QR Scanner</title>
+    
+    <!-- PWA Web Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- iOS Safari Metadata -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <style>
+        /* SKEUOMORPHIC DESIGN CSS */
+        body { 
+            background: radial-gradient(circle, #4b4b4b, #1a1a1a); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
+
+        .terminal-chassis { 
+            background: linear-gradient(135deg, #e6e6e6 0%, #b3b3b3 100%); 
+            width: 420px; 
+            padding: 30px; 
+            border-radius: 25px; 
+            border: 2px solid #888; 
+            box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.6), -10px -10px 20px rgba(255, 255, 255, 0.5), inset 2px 2px 5px rgba(255, 255, 255, 0.8), inset -2px -2px 5px rgba(0, 0, 0, 0.3); 
+            box-sizing: border-box;
+        }
+
+        h1 { 
+            text-align: center; 
+            color: #444; 
+            text-shadow: 1px 1px 2px #fff, -1px -1px 2px #999; 
+            margin-top: 0; 
+            font-weight: 800; 
+            letter-spacing: 2px; 
+            font-size: 22px;
+        }
+
+        .lcd-screen { 
+            background: #0f140f; 
+            color: #33ff33; 
+            font-family: 'Courier New', Courier, monospace; 
+            padding: 15px; 
+            margin-bottom: 20px; 
+            border-radius: 10px; 
+            text-align: center; 
+            font-size: 14px; 
+            font-weight: bold; 
+            box-shadow: inset 5px 5px 15px rgba(0, 0, 0, 0.9), inset -2px -2px 5px rgba(255, 255, 255, 0.1), 0px 2px 2px rgba(255,255,255, 0.8); 
+            text-shadow: 0px 0px 8px #33ff33; 
+            border: 4px solid #333; 
+            min-height: 35px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .control-panel { 
+            background: linear-gradient(to bottom, #c4c4c4, #d9d9d9); 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: inset 3px 3px 8px rgba(0,0,0,0.4), inset -3px -3px 8px rgba(255,255,255,0.7); 
+        }
+
+        button { 
+            background: linear-gradient(to bottom, #f7f7f7 0%, #d4d4d4 100%); 
+            border: 1px solid #a1a1a1; 
+            padding: 12px 15px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            color: #333; 
+            cursor: pointer; 
+            text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8); 
+            box-shadow: 0px 6px 0px #888, 0px 10px 15px rgba(0, 0, 0, 0.4), inset 1px 1px 2px #fff; 
+            transition: all 0.1s ease; 
+            margin-bottom: 12px; 
+            width: 100%; 
+            display: block; 
+            box-sizing: border-box; 
+            text-align: center; 
+            text-decoration: none; 
+            font-size: 14px;
+        }
+
+        button:active { 
+            transform: translateY(6px); 
+            box-shadow: 0px 0px 0px #888, 0px 2px 5px rgba(0, 0, 0, 0.4), inset 2px 2px 5px rgba(0,0,0,0.2); 
+        }
+
+        input[type="text"] { 
+            width: 100%; 
+            padding: 10px 12px; 
+            margin-bottom: 12px; 
+            background: #e8e8e8; 
+            border: none; 
+            border-radius: 6px; 
+            font-size: 14px; 
+            color: #333; 
+            box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.3), inset -2px -2px 4px rgba(255, 255, 255, 0.8), 0px 1px 1px rgba(255, 255, 255, 0.9); 
+            outline: none; 
+            box-sizing: border-box; 
+        }
+
+        /* Primary action button */
+        .action-btn { 
+            background: linear-gradient(to bottom, #4a90e2 0%, #003366 100%); 
+            color: #fff; 
+            text-shadow: none; 
+            border-color: #002244; 
+            box-shadow: 0px 6px 0px #001122, 0px 10px 15px rgba(0, 0, 0, 0.4), inset 1px 1px 2px rgba(255,255,255,0.4); 
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        .action-btn:active { 
+            transform: translateY(6px); 
+            box-shadow: 0px 0px 0px #001122, 0px 2px 5px rgba(0, 0, 0, 0.4), inset 2px 2px 5px rgba(0,0,0,0.4); 
+        }
+
+        /* Danger / Reset Button */
+        .danger-btn {
+            background: linear-gradient(to bottom, #e74c3c 0%, #c0392b 100%);
+            color: #fff;
+            text-shadow: none;
+            border-color: #962d22;
+            box-shadow: 0px 6px 0px #78281f, 0px 10px 15px rgba(0, 0, 0, 0.4), inset 1px 1px 2px rgba(255,255,255,0.4);
+            margin-top: 10px;
+        }
+
+        /* QR Reader container styling */
+        #reader {
+            width: 100%;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .hidden { display: none; }
+        label { font-size: 12px; font-weight: bold; color: #555; display: block; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="terminal-chassis">
+        <h1>PEACI SYSTEM</h1>
+        
+        <div class="lcd-screen" id="statusScreen">
+            <span>INITIALIZING...</span>
+        </div>
+
+        <div class="control-panel">
+            
+            <!-- VIEW 1: OPERATOR REGISTRATION -->
+            <div id="operatorRegisterSection" class="hidden">
+                <label>OPERATOR REGISTRATION</label>
+                <input type="text" id="opName" placeholder="Full Name (Teacher/Coordinator)">
+                <input type="text" id="opRole" placeholder="Role (e.g. IT Instructor / Coordinator)">
+                <button class="action-btn" onclick="registerOperator()">REGISTER OPERATOR</button>
+            </div>
+
+            <!-- VIEW 2: MAIN DASHBOARD -->
+            <div id="dashboardSection" class="hidden">
+                <div style="margin-bottom: 15px; text-align: center;">
+                    <span id="welcomeText" style="font-weight: bold; color: #333; font-size: 14px;"></span>
+                </div>
+
+                <!-- QR Reader Container -->
+                <div id="reader" class="hidden"></div>
+
+                <!-- Main Actions -->
+                <button class="action-btn" id="scanToggleBtn" onclick="toggleScanner()">START SCANNER</button>
+
+                <a href="NSTP-Attendance.html" style="text-decoration: none;">
+                    <button class="action-btn">ATTENDANCE</button>
+                </a>
+
+                <a href="Schedule.html" style="text-decoration: none;">
+                    <button class="action-btn">SCHEDULE</button>
+                </a>
+
+                <hr style="border: 1px solid #b5b5b5; margin: 15px 0;">
+
+                <button class="danger-btn" onclick="resetOperator()">LOGOUT / CHANGE OPERATOR</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- QR Scanner JS Library -->
+    <script src="html5-qrcode.min.js"></script>
+
+    <script>
+        const statusScreen = document.getElementById('statusScreen');
+        const opSection = document.getElementById('operatorRegisterSection');
+        const dashSection = document.getElementById('dashboardSection');
+        const welcomeText = document.getElementById('welcomeText');
+        let html5QrcodeScanner = null;
+
+        function updateScreen(text, subtext = "", color = '#33ff33') {
+            statusScreen.innerHTML = `<span>${text}</span>${subtext ? '<br><span style="font-size: 11px; color:#aaa;">'+subtext+'</span>' : ''}`;
+            statusScreen.style.color = color;
+            statusScreen.style.textShadow = `0px 0px 8px ${color}`;
+        }
+
+        // Check if Operator is already registered on load
+        window.addEventListener('load', () => {
+            checkOperatorState();
+            registerServiceWorker();
+        });
+
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('Service Worker registered! Scope:', reg.scope))
+                    .catch((err) => console.error('Service Worker registration failed:', err));
+            }
+        }
+
+        function checkOperatorState() {
+            const operator = localStorage.getItem('peaci_operator');
+            if (!operator) {
+                opSection.classList.remove('hidden');
+                dashSection.classList.add('hidden');
+                updateScreen("SETUP REQUIRED", "REGISTER OPERATOR TO PROCEED", "#ffaa00");
+            } else {
+                const opData = JSON.parse(operator);
+                opSection.classList.add('hidden');
+                dashSection.classList.remove('hidden');
+                welcomeText.textContent = `Welcome, ${opData.name} (${opData.role})`;
+                updateScreen("SYSTEM READY", "SELECT A SERVICE BELOW");
+            }
+        }
+
+        function registerOperator() {
+            const name = document.getElementById('opName').value.trim();
+            const role = document.getElementById('opRole').value.trim();
+
+            if (!name || !role) {
+                updateScreen("ERROR", "FILL OUT ALL FIELDS", "#ff3333");
+                return;
+            }
+
+            const operatorData = { name: name, role: role };
+            localStorage.setItem('peaci_operator', JSON.stringify(operatorData));
+            
+            checkOperatorState();
+        }
+
+        function resetOperator() {
+            if (confirm("Are you sure you want to change the operator?")) {
+                localStorage.removeItem('peaci_operator');
+                checkOperatorState();
+            }
+        }
+
+        // QR Code Scanner Toggle Logic
+        function toggleScanner() {
+            const readerDiv = document.getElementById('reader');
+            const scanBtn = document.getElementById('scanToggleBtn');
+
+            if (readerDiv.classList.contains('hidden')) {
+                readerDiv.classList.remove('hidden');
+                scanBtn.textContent = "STOP SCANNER";
+                
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+                html5QrcodeScanner.render((decodedText) => {
+                    updateScreen("SCAN SUCCESS", decodedText, "#33ff33");
+                });
+            } else {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.clear();
+                }
+                readerDiv.classList.add('hidden');
+                scanBtn.textContent = "START SCANNER";
+                updateScreen("SYSTEM READY", "SELECT A SERVICE BELOW");
+            }
+        }
+    </script>
+</body>
+</html>
