@@ -870,18 +870,42 @@
             let logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
             logTableBody.innerHTML = '';
             let filteredLogs = [];
-            const todayStr = new Date().toLocaleDateString();
+            
+            // Generate strict YYYY-MM-DD string for "Today" based on local time
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
             if (viewingFilterDate) {
                 logContainerTitle.textContent = `LOGS FOR: ${viewingFilterDate}`;
                 filteredLogs = logs.filter(log => {
-                    let logDateObj = log.timestamp ? new Date(log.timestamp) : new Date();
-                    let formattedLogDate = logDateObj.toISOString().slice(0, 10);
-                    return formattedLogDate === viewingFilterDate;
+                    // Normalize log date to YYYY-MM-DD string
+                    let logDateStr = "";
+                    if (log.timestamp) {
+                        let d = new Date(log.timestamp);
+                        logDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    } else if (log.date) {
+                        // Fallback parsing if timestamp is missing but date string exists
+                        let parsed = new Date(log.date);
+                        if (!isNaN(parsed)) {
+                            logDateStr = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
+                        } else {
+                            logDateStr = log.date; // fallback exact match
+                        }
+                    }
+                    return logDateStr === viewingFilterDate;
                 });
             } else {
                 logContainerTitle.textContent = "RECENT ATTENDANCE LOGS (TODAY)";
-                filteredLogs = logs.filter(log => log.date === todayStr);
+                filteredLogs = logs.filter(log => {
+                    let logDateStr = "";
+                    if (log.timestamp) {
+                        let d = new Date(log.timestamp);
+                        logDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    } else {
+                        logDateStr = log.date;
+                    }
+                    return logDateStr === todayStr;
+                });
             }
 
             if (filteredLogs.length === 0) {
@@ -894,8 +918,14 @@
                 let tagClass = log.mode === 'LOG IN' ? 'tag-login' : 'tag-logout';
                 let modeLabel = log.mode || 'LOG IN';
                 
+                // Display friendly date format on table view
+                let displayDate = log.date;
+                if(log.timestamp) {
+                    displayDate = new Date(log.timestamp).toLocaleDateString();
+                }
+
                 row.innerHTML = `
-                    <td>${log.date || '-'}</td>
+                    <td>${displayDate || '-'}</td>
                     <td>${log.time || '-'}</td>
                     <td>${log.id || '-'}</td>
                     <td>${log.name || '-'}</td>
@@ -904,6 +934,54 @@
                 `;
                 logTableBody.appendChild(row);
             });
+        }
+
+        function getProcessedAttendanceData() {
+            let logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+            let targetLogs = logs.filter(log => {
+                let logDateStr = "";
+                if (log.timestamp) {
+                    let d = new Date(log.timestamp);
+                    logDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                } else {
+                    logDateStr = log.date;
+                }
+
+                if (viewingFilterDate) {
+                    return logDateStr === viewingFilterDate;
+                } else {
+                    return logDateStr === todayStr; 
+                }
+            });
+
+            let processedData = {};
+
+            [...targetLogs].reverse().forEach(log => {
+                let key = log.id;
+
+                if (!processedData[key]) {
+                    processedData[key] = {
+                        name: log.name.toUpperCase(),
+                        id: log.id,
+                        course: log.course,
+                        login: "NO LOG IN",
+                        logout: "NO LOG OUT"
+                    };
+                }
+
+                if (log.mode === 'LOG IN') {
+                    if (processedData[key].login === "NO LOG IN") {
+                        processedData[key].login = log.time;
+                    }
+                } else if (log.mode === 'LOG OUT') {
+                    processedData[key].logout = log.time;
+                }
+            });
+
+            return Object.values(processedData).sort((a, b) => a.name.localeCompare(b.name));
         }
 
         function applyDateFilter() {
