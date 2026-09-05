@@ -316,9 +316,8 @@
             </div>
 
             <button class="action-btn" onclick="openAttendance()">ATTENDANCE TERMINAL</button>
-            
-            <!-- CHANGED: REPLACED SCHEDULE WITH DIRECT REGISTRATION DASHBOARD TRIGGER -->
             <button class="success-btn" onclick="openDashboardRegisterModal()">REGISTER NEW MEMBER</button>
+            <button class="nav-btn" onclick="openMembersModal()">REGISTERED MEMBERS</button>
 
             <hr style="border: 1px solid #b5b5b5; margin: 15px 0;">
 
@@ -364,7 +363,7 @@
                 </div>
             </div>
 
-            <!-- ATTENDANCE LOGS -->
+            <!-- RECENT ATTENDANCE LOGS SECTION (MOVED HERE) -->
             <div class="control-panel">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <label id="logContainerTitle" style="margin-bottom: 0;">RECENT ATTENDANCE LOGS (TODAY)</label>
@@ -389,7 +388,6 @@
                     </table>
                 </div>
                 <button class="action-btn" onclick="openExportModal()" style="margin-top: 10px; margin-bottom: 0;">SAVE DATA</button>
-                <button class="nav-btn" onclick="openMembersModal()" style="margin-top: 8px; margin-bottom: 0;">REGISTERED MEMBERS</button>
             </div>
 
             <button class="nav-btn" onclick="closeAttendance()">RETURN TO MAIN DASHBOARD</button>
@@ -488,7 +486,7 @@
         let lastScanTime = 0;
         let lastScannedId = '';
         let currentMode = 'LOG IN'; // Default attendance mode
-        let viewingFilterDate = null; // Null means viewing current active 24h cycle (Today)
+        let viewingFilterDate = null; // Null means viewing current active calendar day (Today)
 
         // --- UTILITY FUNCTIONS ---
         function updateScreen(text, subtext = "", color = '#33ff33') {
@@ -602,6 +600,8 @@
 
                 updateOnlineStatus();
                 toggleView('dashboardSection');
+                viewingFilterDate = null; // Reset to today
+                renderLogs(); // Trigger logs to display
                 updateScreen("SYSTEM READY", "SELECT A SERVICE BELOW");
             }
         }
@@ -663,9 +663,8 @@
         function openAttendance() {
             toggleView('attendanceSection');
             setAttendanceMode('LOG IN');
-            viewingFilterDate = null; // Reset to live 24h window
-            renderLogs();
             populateMemberDropdown();
+            renderLogs(); // Ensure logs are updated when opening terminal
         }
 
         function closeAttendance() {
@@ -729,10 +728,10 @@
                 const timeStr = nowObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const timestamp = nowObj.getTime();
 
-                const alreadyScanned = logs.some(log => log.id === cleanId && log.mode === currentMode && (timestamp - log.timestamp < 86400000));
+                const alreadyScanned = logs.some(log => log.id === cleanId && log.mode === currentMode && log.date === dateStr);
 
                 if (alreadyScanned) {
-                    updateScreen("ALREADY SCANNED", `${student.name.toUpperCase()} HAS ALREADY ${currentMode}`, "#ffaa00");
+                    updateScreen("ALREADY SCANNED", `${student.name.toUpperCase()} HAS ALREADY ${currentMode} TODAY`, "#ffaa00");
                     return;
                 }
 
@@ -869,12 +868,9 @@
 
         function renderLogs() {
             let logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
-            const now = Date.now();
-            const twentyFourHoursMs = 24 * 60 * 60 * 1000;
-
             logTableBody.innerHTML = '';
-
             let filteredLogs = [];
+            const todayStr = new Date().toLocaleDateString();
 
             if (viewingFilterDate) {
                 logContainerTitle.textContent = `LOGS FOR: ${viewingFilterDate}`;
@@ -884,11 +880,8 @@
                     return formattedLogDate === viewingFilterDate;
                 });
             } else {
-                logContainerTitle.textContent = "RECENT ATTENDANCE LOGS (LAST 24H)";
-                filteredLogs = logs.filter(log => {
-                    if (!log.timestamp) return true;
-                    return (now - log.timestamp) <= twentyFourHoursMs;
-                });
+                logContainerTitle.textContent = "RECENT ATTENDANCE LOGS (TODAY)";
+                filteredLogs = logs.filter(log => log.date === todayStr);
             }
 
             if (filteredLogs.length === 0) {
@@ -929,21 +922,19 @@
             viewingFilterDate = null;
             closeLogFilterModal();
             renderLogs();
-            updateScreen("LIVE LOGS ACTIVE", "SHOWING PAST 24 HOURS", "#33ff33");
+            updateScreen("LIVE LOGS ACTIVE", "SHOWING TODAY'S LOGS", "#33ff33");
         }
 
         function getProcessedAttendanceData() {
             let logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
-            const now = Date.now();
-            const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+            const todayStr = new Date().toLocaleDateString();
 
             let targetLogs = logs.filter(log => {
                 if (viewingFilterDate) {
                     let logDateObj = log.timestamp ? new Date(log.timestamp) : new Date();
                     return logDateObj.toISOString().slice(0, 10) === viewingFilterDate;
                 } else {
-                    if (!log.timestamp) return true;
-                    return (now - log.timestamp) <= twentyFourHoursMs;
+                    return log.date === todayStr; 
                 }
             });
 
