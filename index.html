@@ -932,25 +932,6 @@
             });
         }
 
-        function applyDateFilter() {
-            const dateInputVal = document.getElementById('filterDateInput').value;
-            if (!dateInputVal) {
-                alert("Please select a valid date.");
-                return;
-            }
-            viewingFilterDate = dateInputVal;
-            closeLogFilterModal();
-            renderLogs();
-            updateScreen("LOGS FILTERED", `SHOWING RECORDS FOR ${viewingFilterDate}`, "#ffaa00");
-        }
-
-        function resetToTodayLogs() {
-            viewingFilterDate = null;
-            closeLogFilterModal();
-            renderLogs();
-            updateScreen("LIVE LOGS ACTIVE", "SHOWING TODAY'S LOGS", "#33ff33");
-        }
-
         function getProcessedAttendanceData() {
             let logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
             const now = new Date();
@@ -996,7 +977,31 @@
                 }
             });
 
-            return Object.values(processedData).sort((a, b) => a.name.localeCompare(b.name));
+            // FILTER: EXCLUDE STUDENTS WITH EITHER NO LOGIN OR NO LOGOUT
+            let finalRecords = Object.values(processedData).filter(
+                student => student.login !== "NO LOG IN" && student.logout !== "NO LOG OUT"
+            );
+
+            return finalRecords.sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        function applyDateFilter() {
+            const dateInputVal = document.getElementById('filterDateInput').value;
+            if (!dateInputVal) {
+                alert("Please select a valid date.");
+                return;
+            }
+            viewingFilterDate = dateInputVal;
+            closeLogFilterModal();
+            renderLogs();
+            updateScreen("LOGS FILTERED", `SHOWING RECORDS FOR ${viewingFilterDate}`, "#ffaa00");
+        }
+
+        function resetToTodayLogs() {
+            viewingFilterDate = null;
+            closeLogFilterModal();
+            renderLogs();
+            updateScreen("LIVE LOGS ACTIVE", "SHOWING TODAY'S LOGS", "#33ff33");
         }
 
         function exportData(type) {
@@ -1004,7 +1009,7 @@
             const records = getProcessedAttendanceData();
             
             if (records.length === 0) {
-                alert("No attendance records found to export.");
+                alert("No valid complete attendance records (both log in and out) found to export.");
                 return;
             }
 
@@ -1068,6 +1073,10 @@
             y += 4;
 
             const tableRows = records.map((row, index) => [index + 1, row.name, row.id, row.course, row.login, row.logout]);
+            
+            // ADDED: "NOTHING FOLLOWS" Row spanned across all columns
+            tableRows.push([{ content: '*** NOTHING FOLLOWS ***', colSpan: 6, styles: { halign: 'center', fontStyle: 'bold' } }]);
+
             const tableColumn = ["#", "Name", "ID Number", "Course", "Login", "Logout"];
 
             doc.autoTable({
@@ -1075,7 +1084,8 @@
                 body: tableRows,
                 startY: y,
                 theme: 'grid',
-                styles: { font: 'times', fontSize: 8.5, cellPadding: 2.2 },
+                // ADJUSTED: Padding slightly reduced (1.8) so up to 40 complete rows fit comfortably in one page
+                styles: { font: 'times', fontSize: 8.5, cellPadding: 1.8 },
                 headStyles: { fillColor: [44, 62, 80], halign: 'center', fontSize: 9 },
                 columnStyles: {
                     0: { cellWidth: 10, halign: 'center' },
@@ -1084,14 +1094,6 @@
                     3: { halign: 'center', cellWidth: 28 },
                     4: { halign: 'center', cellWidth: 22 },
                     5: { halign: 'center', cellWidth: 22 }
-                },
-                didParseCell: function(data) {
-                    if (data.section === 'body' && (data.column.index === 4 || data.column.index === 5)) {
-                        if (data.cell.raw === 'NO LOG IN' || data.cell.raw === 'NO LOG OUT') {
-                            data.cell.styles.textColor = [220, 53, 69];
-                            data.cell.styles.fontStyle = 'bold';
-                        }
-                    }
                 }
             });
 
@@ -1149,10 +1151,17 @@
                     <td style="border: 1px solid #333; padding: 6px 10px; font-size: 13px;">${r.name}</td>
                     <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 160px;">${r.id}</td>
                     <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 140px;">${r.course}</td>
-                    <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 130px; ${r.login === 'NO LOG IN' ? 'color: #dc3545; font-weight: bold;' : ''}">${r.login}</td>
-                    <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 130px; ${r.logout === 'NO LOG OUT' ? 'color: #dc3545; font-weight: bold;' : ''}">${r.logout}</td>
+                    <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 130px;">${r.login}</td>
+                    <td style="border: 1px solid #333; padding: 6px; font-size: 13px; text-align: center; width: 130px;">${r.logout}</td>
                 </tr>
             `).join('');
+
+            // ADDED: "NOTHING FOLLOWS" at the end of the JPG Table
+            tableRowsHtml += `
+                <tr>
+                    <td colspan="6" style="border: 1px solid #333; padding: 8px; font-size: 13px; text-align: center; font-weight: bold;">*** NOTHING FOLLOWS ***</td>
+                </tr>
+            `;
 
             const logoHtml = '<img src="NSTP.png" style="width: 140px; height: 70px; object-fit: contain; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">';
 
