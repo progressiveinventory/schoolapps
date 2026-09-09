@@ -1137,12 +1137,12 @@
             doc.autoTable({
                 head: [["NO.", "NAME", "ID NUMBER", "COURSE", "STATUS"]],
                 body: records.map((r, index) => [index + 1, r.name, r.id, r.course, r.status]),
-                startY: 70,
+                startY: 60,
                 theme: 'grid',
                 headStyles: { fillColor: [30, 35, 40], textColor: [255, 255, 255], fontStyle: 'bold', font: 'times' },
                 styles: { fontSize: 12, cellPadding: 2, font: 'times' },
                 columnStyles: { 0: { cellWidth: 15, halign: 'center' } },
-                margin: { top: 70, bottom: 30 },
+                margin: { top: 60, bottom: 30 },
                 didParseCell: function(data) {
                     if (data.section === 'body') {
                         if (data.row.raw[4] === "NOT YET SUBMITTED") {
@@ -1154,36 +1154,36 @@
                 didDrawPage: function(data) {
                     try { 
                         if (logo) {
-                            let imgW = 30;
-                            let imgH = 30;
+                            let imgW = 24;
+                            let imgH = 24;
                             if (logo.naturalWidth && logo.naturalHeight) {
                                 imgH = (logo.naturalHeight * imgW) / logo.naturalWidth;
                             }
-                            doc.addImage(logo, 'PNG', (pageWidth/2) - (imgW/2), 10, imgW, imgH); 
+                            doc.addImage(logo, 'PNG', (pageWidth/2) - (imgW/2), 8, imgW, imgH); 
                         }
                     } catch(e) {}
                     
                     doc.setFontSize(12);
                     doc.setFont("times", "bold");
-                    doc.text("PHILIPPINE ENGINEERING and AGRO-INDUSTRIAL COLLEGE, INC.", pageWidth/2, 44, { align: "center" });
+                    doc.text("PHILIPPINE ENGINEERING and AGRO-INDUSTRIAL COLLEGE, INC.", pageWidth/2, 36, { align: "center" });
                     doc.setFontSize(12);
                     doc.setFont("times", "normal");
-                    doc.text("National Training Service Program - Civic Welfare and Training Service", pageWidth/2, 50, { align: "center" });
+                    doc.text("National Training Service Program - Civic Welfare and Training Service", pageWidth/2, 42, { align: "center" });
                     
                     doc.setFontSize(12);
                     doc.setFont("times", "bold");
-                    doc.text(details.name.toUpperCase(), pageWidth/2, 58, { align: "center" });
+                    doc.text(details.name.toUpperCase(), pageWidth/2, 48, { align: "center" });
                     
                     doc.setFontSize(12);
                     doc.setFont("times", "normal");
-                    doc.text(formattedDate, pageWidth - 14, 64, { align: "right" });
+                    doc.text(formattedDate, pageWidth - 14, 54, { align: "right" });
 
                     doc.setFontSize(10);
                     doc.setFont("times", "normal");
                     doc.text("Page 1 of 1", pageWidth - 14, 15, { align: "right" });
 
                     doc.setLineWidth(0.5);
-                    doc.line(14, 67, pageWidth - 14, 67);
+                    doc.line(14, 57, pageWidth - 14, 57);
 
                     const opName = capitalizeFirstLetter(activeUser.name);
                     const opRole = capitalizeFirstLetter(activeUser.role);
@@ -1243,7 +1243,7 @@
                 page.innerHTML = `
                     <div style="position:absolute; top:20px; right:40px; font-size:12px; font-family:'Times New Roman', 'Arial Narrow', serif;">Page 1 of 1</div>
                     <div style="text-align:center;">
-                        <img src="NSTP.png" style="width:75px; height:auto; object-fit:contain; margin-bottom:10px;" onerror="this.style.display='none'">
+                        <img src="NSTP.png" style="width:70px; height:auto; object-fit:contain; margin-bottom:2px;" onerror="this.style.display='none'">
                         <h3 style="margin:0; font-size:12px;">PHILIPPINE ENGINEERING and AGRO-INDUSTRIAL COLLEGE, INC.</h3>
                         <h4 style="margin:5px 0 10px 0; font-size:12px; font-weight:normal;">National Training Service Program - Civic Welfare and Training Service</h4>
                     </div>
@@ -1308,12 +1308,12 @@
             doc.autoTable({
                 head: [["NO.", "NAME", "ID NUMBER", "COURSE", "LOG IN", "LOG OUT"]],
                 body: records.map((r, index) => [index + 1, r.name, r.id, r.course, r.login, r.logout]),
-                startY: 60,
+                startY: 54,
                 theme: 'grid',
                 headStyles: { fillColor: [30, 35, 40], textColor: [255, 255, 255], fontStyle: 'bold', font: 'times' },
                 styles: { fontSize: 12, cellPadding: 2, font: 'times' },
                 columnStyles: { 0: { cellWidth: 15, halign: 'center' } },
-                margin: { top: 60, bottom: 30 },
+                margin: { top: 54, bottom: 30 },
                 didParseCell: function(data) {
                     if (data.section === 'body' && (data.column.index === 4 || data.column.index === 5)) {
                         if (data.cell.raw === "NO LOG IN" || data.cell.raw === "NO LOG OUT") {
@@ -1325,29 +1325,29 @@
                 didDrawPage: function(data) {
                     try { 
                         if (logo) {
-                            let imgW = 30;
-                            let imgH = 30;
+                            let imgW = 24;
+                            let imgH = 24;
                             if (logo.naturalWidth && logo.naturalHeight) {
                                 imgH = (logo.naturalHeight * imgW) / logo.naturalWidth;
                             }
-                            doc.addImage(logo, 'PNG', (pageWidth/2) - (imgW/2), 10, imgW, imgH); 
+                            doc.addImage(logo, 'PNG', (pageWidth/2) - (imgW/2), 8, imgW, imgH); 
                         }
                     } catch(e) {}
                     
                     doc.setFontSize(12);
                     doc.setFont("times", "bold");
-                    doc.text("PHILIPPINE ENGINEERING and AGRO-INDUSTRIAL COLLEGE, INC.", pageWidth/2, 40, { align: "center" });
+                    doc.text("PHILIPPINE ENGINEERING and AGRO-INDUSTRIAL COLLEGE, INC.", pageWidth/2, 36, { align: "center" });
                     doc.setFontSize(12);
                     doc.setFont("times", "normal");
-                    doc.text("National Training Service Program - Civic Welfare and Training Service", pageWidth/2, 46, { align: "center" });
-                    doc.text(formattedDate, pageWidth - 14, 54, { align: "right" });
+                    doc.text("National Training Service Program - Civic Welfare and Training Service", pageWidth/2, 42, { align: "center" });
+                    doc.text(formattedDate, pageWidth - 14, 48, { align: "right" });
 
                     doc.setFontSize(10);
                     doc.setFont("times", "normal");
                     doc.text("Page 1 of 1", pageWidth - 14, 15, { align: "right" });
 
                     doc.setLineWidth(0.5);
-                    doc.line(14, 57, pageWidth - 14, 57);
+                    doc.line(14, 51, pageWidth - 14, 51);
 
                     const opName = capitalizeFirstLetter(activeUser.name);
                     const opRole = capitalizeFirstLetter(activeUser.role);
@@ -1406,7 +1406,7 @@
                 page.innerHTML = `
                     <div style="position:absolute; top:20px; right:40px; font-size:12px; font-family:'Times New Roman', 'Arial Narrow', serif;">Page 1 of 1</div>
                     <div style="text-align:center;">
-                        <img src="NSTP.png" style="width:75px; height:auto; object-fit:contain; margin-bottom:10px;" onerror="this.style.display='none'">
+                        <img src="NSTP.png" style="width:70px; height:auto; object-fit:contain; margin-bottom:2px;" onerror="this.style.display='none'">
                         <h3 style="margin:0; font-size:12px;">PHILIPPINE ENGINEERING and AGRO-INDUSTRIAL COLLEGE, INC.</h3>
                         <h4 style="margin:5px 0 10px 0; font-size:12px; font-weight:normal;">National Training Service Program - Civic Welfare and Training Service</h4>
                     </div>
