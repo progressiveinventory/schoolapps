@@ -1152,7 +1152,16 @@
                     }
                 },
                 didDrawPage: function(data) {
-                    try { if (logo) doc.addImage(logo, 'PNG', (pageWidth/2) - 15, 10, 30, 30); } catch(e) {}
+                    try { 
+                        if (logo) {
+                            let imgW = 30;
+                            let imgH = 30;
+                            if (logo.naturalWidth && logo.naturalHeight) {
+                                imgH = (logo.naturalHeight * imgW) / logo.naturalWidth;
+                            }
+                            doc.addImage(logo, 'PNG', (pageWidth/2) - (imgW/2), 10, imgW, imgH); 
+                        }
+                    } catch(e) {}
                     
                     doc.setFontSize(12);
                     doc.setFont("times", "bold");
@@ -1177,14 +1186,26 @@
                     doc.line(14, 67, pageWidth - 14, 67);
 
                     const opName = capitalizeFirstLetter(activeUser.name);
+                    const opRole = capitalizeFirstLetter(activeUser.role);
                     const footerY = doc.internal.pageSize.getHeight() - 20;
+                    
                     doc.setFontSize(12);
                     doc.setFont("times", "bold");
-                    doc.text(opName, 14, footerY, { align: "left" });
-                    doc.line(14, footerY + 1, 14 + doc.getTextWidth(opName), footerY + 1);
-                    doc.setFontSize(12);
+                    const nameWidth = doc.getTextWidth(opName);
                     doc.setFont("times", "normal");
-                    doc.text(capitalizeFirstLetter(activeUser.role), 14, footerY + 6, { align: "left" });
+                    const roleWidth = doc.getTextWidth(opRole);
+                    
+                    const sigWidth = Math.max(nameWidth, roleWidth, 60);
+                    const sigCenterX = 14 + (sigWidth / 2);
+
+                    doc.setFont("times", "bold");
+                    doc.text(opName, sigCenterX, footerY, { align: "center" });
+                    
+                    doc.setLineWidth(0.5);
+                    doc.line(sigCenterX - (sigWidth/2), footerY + 1, sigCenterX + (sigWidth/2), footerY + 1);
+
+                    doc.setFont("times", "normal");
+                    doc.text(opRole, sigCenterX, footerY + 6, { align: "center" });
                 }
             });
 
@@ -1232,7 +1253,7 @@
                     </div>
                     <hr style="border:0; border-top:1.5px solid #000; margin-bottom:15px; margin-top:10px;">
 
-                    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                    <table style="width:100%; border-collapse:collapse; font-size:12px; color:#000000;">
                         <thead>
                             <tr style="background:#222; color:#fff;">
                                 <th style="padding:8px; border:1px solid #000; width:40px; text-align:center;">NO.</th>
@@ -1244,7 +1265,7 @@
                         </thead>
                         <tbody>
                             ${chunk.map((r, i) => `
-                                <tr style="${r.status === 'NOT YET SUBMITTED' ? 'background-color:rgba(231, 76, 60, 0.8); color:#ffffff;' : ''}">
+                                <tr style="color:#000000; ${r.status === 'NOT YET SUBMITTED' ? 'background-color:rgba(231, 76, 60, 0.8); color:#ffffff;' : ''}">
                                     <td style="padding:6px; border:1px solid #000; text-align:center;">${globalOffset + i + 1}</td>
                                     <td style="padding:6px; border:1px solid #000; font-weight:bold;">${r.name}</td>
                                     <td style="padding:6px; border:1px solid #000; text-align:center;">${r.id}</td>
@@ -1255,9 +1276,9 @@
                         </tbody>
                     </table>
 
-                    <div style="position:absolute; bottom:60px; left:40px; text-align:left; color:#000;">
-                        <div style="text-decoration:underline; font-weight:bold; font-size:12px;">${capitalizeFirstLetter(activeUser.name)}</div>
-                        <div style="font-size:12px; margin-top:5px;">${capitalizeFirstLetter(activeUser.role)}</div>
+                    <div style="position:absolute; bottom:60px; left:40px; text-align:center; color:#000; min-width: 180px; display: flex; flex-direction: column; align-items: center;">
+                        <div style="font-weight:bold; font-size:12px; border-bottom: 1px solid #000; padding-bottom: 2px; width: 100%;">${capitalizeFirstLetter(activeUser.name)}</div>
+                        <div style="font-size:12px; margin-top:3px;">${capitalizeFirstLetter(activeUser.role)}</div>
                     </div>
                 `;
                 container.appendChild(page);
@@ -1302,7 +1323,16 @@
                     }
                 },
                 didDrawPage: function(data) {
-                    try { if (logo) doc.addImage(logo, 'PNG', (pageWidth/2) - 15, 10, 30, 30); } catch(e) {}
+                    try { 
+                        if (logo) {
+                            let imgW = 30;
+                            let imgH = 30;
+                            if (logo.naturalWidth && logo.naturalHeight) {
+                                imgH = (logo.naturalHeight * imgW) / logo.naturalWidth;
+                            }
+                            doc.addImage(logo, 'PNG', (pageWidth/2) - (imgW/2), 10, imgW, imgH); 
+                        }
+                    } catch(e) {}
                     
                     doc.setFontSize(12);
                     doc.setFont("times", "bold");
@@ -1320,14 +1350,26 @@
                     doc.line(14, 57, pageWidth - 14, 57);
 
                     const opName = capitalizeFirstLetter(activeUser.name);
+                    const opRole = capitalizeFirstLetter(activeUser.role);
                     const footerY = doc.internal.pageSize.getHeight() - 20;
+                    
                     doc.setFontSize(12);
                     doc.setFont("times", "bold");
-                    doc.text(opName, 14, footerY, { align: "left" });
-                    doc.line(14, footerY + 1, 14 + doc.getTextWidth(opName), footerY + 1);
-                    doc.setFontSize(12);
+                    const nameWidth = doc.getTextWidth(opName);
                     doc.setFont("times", "normal");
-                    doc.text(capitalizeFirstLetter(activeUser.role), 14, footerY + 6, { align: "left" });
+                    const roleWidth = doc.getTextWidth(opRole);
+                    
+                    const sigWidth = Math.max(nameWidth, roleWidth, 60);
+                    const sigCenterX = 14 + (sigWidth / 2);
+
+                    doc.setFont("times", "bold");
+                    doc.text(opName, sigCenterX, footerY, { align: "center" });
+                    
+                    doc.setLineWidth(0.5);
+                    doc.line(sigCenterX - (sigWidth/2), footerY + 1, sigCenterX + (sigWidth/2), footerY + 1);
+
+                    doc.setFont("times", "normal");
+                    doc.text(opRole, sigCenterX, footerY + 6, { align: "center" });
                 }
             });
 
@@ -1371,7 +1413,7 @@
                     <div style="width:100%; text-align:right; font-size:12px; margin-top:20px;">${formattedDate}</div>
                     <hr style="border:0; border-top:1.5px solid #000; margin-bottom:15px; margin-top:10px;">
 
-                    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                    <table style="width:100%; border-collapse:collapse; font-size:12px; color:#000000;">
                         <thead>
                             <tr style="background:#222; color:#fff;">
                                 <th style="padding:8px; border:1px solid #000; width:40px; text-align:center;">NO.</th>
@@ -1384,7 +1426,7 @@
                         </thead>
                         <tbody>
                             ${chunk.map((r, i) => `
-                                <tr>
+                                <tr style="color:#000000;">
                                     <td style="padding:6px; border:1px solid #000; text-align:center;">${globalOffset + i + 1}</td>
                                     <td style="padding:6px; border:1px solid #000; font-weight:bold;">${r.name}</td>
                                     <td style="padding:6px; border:1px solid #000; text-align:center;">${r.id}</td>
@@ -1396,9 +1438,9 @@
                         </tbody>
                     </table>
 
-                    <div style="position:absolute; bottom:60px; left:40px; text-align:left; color:#000;">
-                        <div style="text-decoration:underline; font-weight:bold; font-size:12px;">${capitalizeFirstLetter(activeUser.name)}</div>
-                        <div style="font-size:12px; margin-top:5px;">${capitalizeFirstLetter(activeUser.role)}</div>
+                    <div style="position:absolute; bottom:60px; left:40px; text-align:center; color:#000; min-width: 180px; display: flex; flex-direction: column; align-items: center;">
+                        <div style="font-weight:bold; font-size:12px; border-bottom: 1px solid #000; padding-bottom: 2px; width: 100%;">${capitalizeFirstLetter(activeUser.name)}</div>
+                        <div style="font-size:12px; margin-top:3px;">${capitalizeFirstLetter(activeUser.role)}</div>
                     </div>
                 `;
                 container.appendChild(page);
