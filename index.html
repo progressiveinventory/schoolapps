@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PEACI - Multifunctional App</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PEACI - NSTP CWTS Watermark</title>
+
     <!-- PWA Web Manifest -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0a">
@@ -17,1660 +17,644 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
 
     <!-- External Libraries -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <style>
-        /* GLASSMORPHIC & NEON DARK THEME CSS */
-        body { 
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff0000;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
             font-family: 'Poppins', sans-serif;
             font-weight: 700;
+        }
+
+        body {
+            background-color: #040406;
             color: #ffffff;
-            display: flex; 
-            justify-content: center; 
-            align-items: flex-start; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 20px;
-            box-sizing: border-box;
-            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
         }
 
-        .bg-wrapper {
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100vw; height: 100vh; 
-            z-index: -1; 
-            overflow: hidden; 
-            background: #0a0a0a;
-        }
-        
-        .bg-wrapper img {
-            width: 100%; height: 100%; 
-            object-fit: cover; 
-            opacity: 0.2;
+        #mobile-container {
+            width: 100%;
+            max-width: 450px;
+            background-color: #0a0a12;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.15);
         }
 
-        .neon-orb {
-            position: absolute; 
-            border-radius: 50%; 
-            filter: blur(100px); 
-            opacity: 0.4;
+        #mobile-container::before {
+            content: ''; position: absolute; top: -5%; left: -20%;
+            width: 250px; height: 250px; background: var(--neon-pink);
+            border-radius: 50%; filter: blur(120px); z-index: 0; opacity: 0.5;
+        }
+        #mobile-container::after {
+            content: ''; position: absolute; bottom: 10%; right: -20%;
+            width: 250px; height: 250px; background: var(--neon-blue);
+            border-radius: 50%; filter: blur(120px); z-index: 0; opacity: 0.5;
+        }
+
+        .content-wrapper {
+            position: relative;
             z-index: 1;
+            padding: 15px;
         }
-        .orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #00ffcc; }
-        .orb-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: #ff00ff; }
 
-        .terminal-chassis { 
-            background: rgba(20, 25, 30, 0.4); 
+        .glass-panel {
+            background: var(--glass-bg);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            width: 100%;
-            max-width: 500px; 
-            padding: 25px; 
-            border-radius: 20px; 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2); 
-            box-sizing: border-box;
-            position: relative;
-            z-index: 10;
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
 
-        .header-banner {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            padding: 12px 18px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            margin-bottom: 15px;
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { font-size: 1.4rem; letter-spacing: 1px; color: #fff; }
+        p.subtitle { font-size: 0.75rem; color: var(--neon-blue); text-transform: uppercase; margin-top: 2px; }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label {
+            display: block; font-size: 0.75rem; color: #ccc;
+            margin-bottom: 6px; text-transform: uppercase;
         }
 
-        .header-logo {
-            width: 90px;
-            height: 90px;
-            object-fit: contain;
-            filter: drop-shadow(0px 2px 8px rgba(0,255,204,0.4));
+        .grid-inputs {
+            display: flex; gap: 10px; align-items: center; margin-bottom: 15px;
         }
 
-        .header-titles {
+        .glass-input {
+            width: 100%; padding: 12px 15px; border-radius: 12px;
+            background: rgba(0, 0, 0, 0.5); border: 1px solid var(--glass-border);
+            color: white; outline: none; font-size: 0.9rem; text-align: center;
+        }
+        .glass-input:focus { border-color: var(--neon-blue); }
+        input[type="date"], input[type="file"] { text-align: left; }
+
+        .file-upload-wrapper {
+            position: relative; text-align: center;
+            margin-top: 10px; margin-bottom: 20px; transition: opacity 0.3s ease;
+        }
+        .file-upload-wrapper.disabled { opacity: 0.4; pointer-events: none; }
+        .file-upload-wrapper input[type="file"] {
+            position: absolute; left: 0; top: 0;
+            width: 100%; height: 100%; opacity: 0; cursor: pointer;
+        }
+        .upload-btn {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink));
+            color: #fff; padding: 14px 20px; border-radius: 12px;
+            display: inline-block; width: 100%; text-transform: uppercase;
+            font-size: 0.85rem; box-shadow: 0 4px 15px rgba(255, 0, 230, 0.3);
+        }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid var(--neon-blue);
+            color: var(--neon-blue); width: 100%; padding: 12px; border-radius: 12px;
+            font-size: 0.85rem; text-transform: uppercase;
+            cursor: pointer; transition: 0.3s;
+        }
+        .btn-generate {
+            background: var(--neon-blue); color: #000;
+            box-shadow: 0 4px 15px rgba(0, 243, 255, 0.4); border: none;
+        }
+        .btn-default {
+            margin: 0; padding: 12px 15px; width: auto; font-size: 0.75rem;
+            background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.3);
+        }
+        .btn:disabled {
+            background: #222; color: #555; border-color: #333; box-shadow: none; pointer-events: none;
+        }
+
+        #status-area { text-align: center; margin: 12px 0; font-size: 0.85rem; color: var(--neon-pink); }
+        
+        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .preview-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            text-align: left;
         }
-
-        .header-titles h1 { 
-            color: #ffffff; 
-            text-shadow: 0px 0px 10px rgba(255,255,255,0.4); 
-            margin: 0; 
-            font-size: 22px;
-            letter-spacing: 1px;
-        }
-
-        .header-titles p {
-            margin: 2px 0 0 0;
-            font-size: 11px;
-            color: #00ffcc;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .status-badge {
-            text-align: center;
-            font-size: 12px;
+        .preview-img { width: 100%; height: 110px; object-fit: cover; display: block; }
+        .card-actions {
+            display: flex;
             padding: 6px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            backdrop-filter: blur(5px);
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.6);
         }
-        .status-online { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.4); text-shadow: 0 0 8px rgba(46,204,113,0.6); }
-        .status-offline { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.4); text-shadow: 0 0 8px rgba(231,76,60,0.6); }
+        .card-btn {
+            flex: 1;
+            padding: 6px 0;
+            font-size: 0.68rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: 0.2s;
+        }
+        .card-btn-view {
+            background: rgba(0, 243, 255, 0.15);
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+        }
+        .card-btn-delete {
+            background: rgba(255, 0, 0, 0.15);
+            color: #ff5555;
+            border: 1px solid #ff5555;
+        }
 
-        .lcd-screen { 
-            background: rgba(0, 0, 0, 0.6); 
-            color: #00ffcc; 
-            font-family: 'Poppins', sans-serif; 
-            padding: 15px; 
-            margin-bottom: 15px; 
-            border-radius: 12px; 
-            text-align: center; 
-            font-size: 14px; 
-            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 255, 204, 0.1); 
-            text-shadow: 0px 0px 10px #00ffcc; 
-            border: 1px solid rgba(0, 255, 204, 0.3); 
-            min-height: 45px; 
+        footer {
+            text-align: center; margin-top: 25px; padding-top: 15px;
+            border-top: 1px solid var(--glass-border); font-size: 0.75rem;
+            letter-spacing: 2px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase;
+        }
+        footer span {
+            color: var(--neon-blue); text-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
+        }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 450px; height: 100%;
+            background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px);
+            z-index: 1000; flex-direction: column; padding: 20px;
+            justify-content: center;
+        }
+        .crop-container { flex-grow: 1; min-height: 0; margin-bottom: 15px; border-radius: 12px; overflow: hidden; }
+        .modal-text { text-align: center; color: var(--neon-pink); margin-bottom: 10px; font-size: 1rem; }
+        
+        .view-image-container {
+            flex-grow: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-direction: column;
-        }
-
-        .control-panel { 
-            background: rgba(255, 255, 255, 0.05); 
-            padding: 18px; 
-            border-radius: 15px; 
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3); 
+            overflow: hidden;
             margin-bottom: 15px;
         }
-
-        button { 
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            border: none; 
-            padding: 12px 14px; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            transition: all 0.2s ease; 
-            margin-bottom: 12px; 
-            width: 100%; 
-            box-sizing: border-box; 
-            text-align: center; 
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+        .view-image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            object-fit: contain;
         }
 
-        button:active { transform: scale(0.97); }
-
-        .action-btn { 
-            background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%); 
-            color: #fff; 
-            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
-        }
-        .action-btn:hover { box-shadow: 0 0 20px rgba(0, 198, 255, 0.6); }
-
-        .success-btn { 
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); 
-            color: #fff; 
-            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
-        }
-        .success-btn:hover { box-shadow: 0 0 20px rgba(56, 239, 125, 0.6); }
-        
-        .danger-btn {
-            background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(203, 45, 62, 0.4);
-        }
-        .danger-btn:hover { box-shadow: 0 0 20px rgba(239, 71, 58, 0.6); }
-
-        .nav-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
-        }
-        .nav-btn:hover { background: rgba(255, 255, 255, 0.2); }
-
-        .event-btn {
-            background: rgba(0, 255, 204, 0.1);
-            color: #00ffcc;
-            border: 1px solid rgba(0, 255, 204, 0.4);
-            box-shadow: 0 2px 10px rgba(0, 255, 204, 0.1);
-        }
-        .event-btn:hover { background: rgba(0, 255, 204, 0.2); }
-
-        input[type="text"], input[type="password"], input[type="date"], select { 
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            width: 100%; 
-            padding: 12px; 
-            margin-bottom: 12px; 
-            background: rgba(0, 0, 0, 0.4); 
-            border: 1px solid rgba(255, 255, 255, 0.15); 
-            border-radius: 10px; 
-            font-size: 13px; 
-            color: #fff; 
-            outline: none; 
-            box-sizing: border-box; 
-            transition: border 0.3s, box-shadow 0.3s;
-        }
-        
-        input::placeholder { color: rgba(255, 255, 255, 0.4); }
-        input:focus, select:focus {
-            border-color: #00ffcc;
-            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
-        }
-
-        label { font-size: 12px; color: #00ffcc; display: block; margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase; }
-        
-        #reader { 
-            width: 100%; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            background: rgba(0,0,0,0.8);
-            margin-bottom: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .logs-container {
-            max-height: 200px;
-            overflow-y: auto;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .logs-container::-webkit-scrollbar { width: 6px; }
-        .logs-container::-webkit-scrollbar-track { background: transparent; }
-        .logs-container::-webkit-scrollbar-thumb { background: rgba(0,255,204,0.4); border-radius: 10px; }
-
-        table { width: 100%; border-collapse: collapse; font-size: 11px; color: #fff; }
-        th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        th { background: rgba(0,0,0,0.4); color: #00ffcc; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
-
-        .tag-login { color: #2ecc71; text-shadow: 0 0 5px rgba(46,204,113,0.5); }
-        .tag-logout { color: #e74c3c; text-shadow: 0 0 5px rgba(231,76,60,0.5); }
-
-        .hidden { display: none !important; }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .modal-content {
-            background: rgba(20, 25, 30, 0.85);
-            padding: 25px;
+        .modal-dialog-box {
+            background: rgba(20, 20, 30, 0.9);
+            border: 1px solid var(--glass-border);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.2);
-            width: 90%;
-            max-width: 360px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
             text-align: center;
-            color: #fff;
-        }
-
-        .modal-content h3 {
-            margin-top: 0;
-            font-size: 18px;
-            letter-spacing: 1px;
-            color: #00ffcc;
-            text-shadow: 0 0 10px rgba(0,255,204,0.4);
-        }
-
-        .row-not-submitted {
-            background-color: rgba(231, 76, 60, 0.3) !important;
-        }
-
-        #attendanceSection, #attendanceSection *,
-        #narraportSection, #narraportSection * {
-            font-family: 'Times New Roman', 'Arial Narrow', serif !important;
-            font-size: 12px !important;
-            font-weight: normal;
         }
     </style>
 </head>
 <body>
 
-    <div class="bg-wrapper">
-        <picture>
-            <source media="(max-width: 768px)" srcset="mobile-bg.jpg">
-        </picture>
-        <div class="neon-orb orb-1"></div>
-        <div class="neon-orb orb-2"></div>
-    </div>
+    <div id="mobile-container">
+        <div class="content-wrapper">
+            <div class="glass-panel">
+                <header>
+                    <h1>NSTP-CWTS 2026-2027</h1>
+                    <p class="subtitle">Philippine Engineering & Agro-Industrial College, Inc.</p>
+                </header>
 
-    <!-- Hidden Logo For PDF Generation -->
-    <img id="pdfLogo" src="NSTP.png" alt="NSTP Logo" style="display:none;">
-
-    <div class="terminal-chassis">
-        <div class="header-banner">
-            <img src="NSTP.png" alt="NSTP Logo" class="header-logo" onerror="this.style.display='none'">
-            <div class="header-titles">
-                <h1>PEACI SYSTEM</h1>
-                <p>NSTP OPERATOR TERMINAL</p>
-            </div>
-        </div>
-        
-        <div id="netStatus" class="status-badge status-online hidden">SYSTEM ONLINE</div>
-
-        <div class="lcd-screen" id="statusScreen">
-            <span>INITIALIZING...</span>
-        </div>
-
-        <div id="loginSection" class="control-panel view-section hidden">
-            <label>OPERATOR LOGIN</label>
-            <input type="text" id="loginUsername" placeholder="Username">
-            <input type="password" id="loginPassword" placeholder="Password">
-            <button class="action-btn" onclick="login()">LOGIN</button>
-            <button class="nav-btn" onclick="toggleView('operatorRegisterSection')">REGISTER NEW OPERATOR</button>
-            <button class="event-btn" onclick="openTutorialModal()" style="margin-top: 5px;">HOW TO USE (TUTORIAL)</button>
-        </div>
-
-        <div id="operatorRegisterSection" class="control-panel view-section hidden">
-            <label>REGISTER NEW OPERATOR</label>
-            <input type="text" id="regUsername" placeholder="Username (Required)">
-            <input type="password" id="regPassword" placeholder="Password (Required)">
-            <input type="text" id="opName" placeholder="Full Name (Teacher/Coordinator)">
-            <input type="text" id="opRole" placeholder="Role (e.g. IT Instructor / Coordinator)">
-            <button class="action-btn" onclick="registerOperator()">SAVE REGISTRATION</button>
-            <button class="nav-btn" onclick="toggleView('loginSection')">BACK TO LOGIN</button>
-        </div>
-
-        <div id="dashboardSection" class="control-panel view-section hidden">
-            <div style="margin-bottom: 18px; text-align: center;">
-                <span id="welcomeText" style="color: #fff; font-size: 15px; text-shadow: 0 0 5px rgba(255,255,255,0.3);"></span>
-            </div>
-
-            <button class="action-btn" onclick="openAttendance()">ATTENDANCE TERMINAL</button>
-            <button class="action-btn" onclick="openNarraport()">NARRAPORT</button>
-            <button class="success-btn" onclick="openDashboardRegisterModal()">REGISTER NEW MEMBER</button>
-            <button class="nav-btn" onclick="openMembersModal()">REGISTERED MEMBERS</button>
-
-            <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
-
-            <button class="danger-btn" onclick="logout()">LOGOUT</button>
-        </div>
-
-        <div id="attendanceSection" class="view-section hidden">
-            <div class="control-panel">
-                <label>SELECT ATTENDANCE MODE</label>
-                <div style="display: flex; gap: 10px;">
-                    <button id="btnLogInMode" class="success-btn" style="margin-bottom: 0;" onclick="setAttendanceMode('LOG IN')">LOG IN</button>
-                    <button id="btnLogOutMode" class="nav-btn" style="margin-bottom: 0;" onclick="setAttendanceMode('LOG OUT')">LOG OUT</button>
-                </div>
-            </div>
-
-            <div class="control-panel">
-                <label>CAMERA SCANNER (BACK CAMERA)</label>
-                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                    <button class="success-btn" onclick="startCameraScanner()" style="margin-bottom: 0;">START CAMERA</button>
-                    <button class="danger-btn" onclick="stopCameraScanner()" style="margin-bottom: 0;">STOP CAMERA</button>
-                </div>
-                <div id="reader"></div>
-                
-                <label style="margin-top: 15px;">INPUT ID NUMBER</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="manualScanId" placeholder="Scan or type ID Number" onkeypress="handleManualScan(event)" style="margin-bottom: 0; flex: 1;">
-                    <button class="action-btn" onclick="submitManualScan()" style="width: 90px; margin-bottom: 0;">ENTER</button>
+                <div class="input-group">
+                    <label for="eventDate">1. Set Date First (Required)</label>
+                    <input type="date" id="eventDate" class="glass-input">
                 </div>
 
-                <label style="margin-top: 15px;">SEARCH OR SELECT REGISTERED MEMBER (ALPHABETICAL)</label>
-                <div style="display: flex; gap: 10px;">
-                    <select id="memberSelectDropdown" onchange="handleDropdownSelect(this.value)" style="margin-bottom: 0; flex: 1;">
-                        <option value="" style="color: #000;">-- Type or scroll name --</option>
-                    </select>
-                    <button class="action-btn" onclick="submitSelectedMember()" style="width: 90px; margin-bottom: 0;">SELECT</button>
+                <div class="input-group">
+                    <label>2. Upload Photos</label>
+                    <div class="file-upload-wrapper disabled" id="uploadWrapper">
+                        <input type="file" id="imageInput" multiple accept="image/*" disabled>
+                        <div class="upload-btn" id="uploadBtnText">Set Date Above to Unlock</div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="control-panel">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <label id="logContainerTitle" style="margin-bottom: 0;">RECENT ATTENDANCE LOGS (TODAY)</label>
-                    <button class="nav-btn" onclick="openLogFilterModal()" style="width: auto; padding: 6px 12px; font-size: 11px; margin-bottom: 0;">VIEW BY DATE</button>
+                <div class="input-group">
+                    <label>3. PDF Layout</label>
+                    <div class="grid-inputs">
+                        <input type="number" id="pdfCols" class="glass-input" placeholder="Cols" value="2" min="1">
+                        <span style="color: #666;">x</span>
+                        <input type="number" id="pdfRows" class="glass-input" placeholder="Rows" value="3" min="1">
+                        <button id="defaultGridBtn" class="btn btn-default">DEFAULT</button>
+                    </div>
                 </div>
-                
-                <div class="logs-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>No.</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>ID Number</th>
-                                <th>Name</th>
-                                <th>Course</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="logTableBody">
-                        </tbody>
-                    </table>
+
+                <div id="status-area">PLEASE SELECT A DATE TO BEGIN</div>
+                <div class="preview-grid" id="previewGrid"></div>
+
+                <div class="btn-group">
+                    <button id="generatePdfBtn" class="btn btn-generate" disabled>DOWNLOAD PDF</button>
                 </div>
-                <button class="action-btn" onclick="openExportModal()" style="margin-top: 15px; margin-bottom: 0;">SAVE DATA</button>
-            </div>
 
-            <button class="nav-btn" onclick="closeAttendance()">RETURN TO MAIN DASHBOARD</button>
-        </div>
-
-        <div id="narraportSection" class="view-section hidden">
-            <div id="narraportListContainer" class="control-panel">
-                <label style="text-align: center; display: block;">REGISTERED EVENTS</label>
-                <div id="eventsWrapper" style="margin-bottom: 15px; max-height: 200px; overflow-y: auto;">
-                </div>
-                <button class="success-btn" onclick="openAddEventForm()" style="margin-bottom: 0;">+ ADD EVENT</button>
-            </div>
-
-            <div id="narraportAddForm" class="control-panel hidden">
-                <label style="text-align: center; display: block;">NEW EVENT DETAILS</label>
-                <input type="text" id="narraportEventName" placeholder="Event Name" style="text-align: center;">
-                <label>Event Date</label>
-                <input type="date" id="narraportDate">
-                <label>Submission Deadline</label>
-                <input type="date" id="narraportDeadline">
-                
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <button class="action-btn" onclick="saveNewEvent()" style="margin-bottom: 0;">SAVE</button>
-                    <button class="danger-btn" onclick="closeAddEventForm()" style="margin-bottom: 0;">CANCEL</button>
-                </div>
-            </div>
-
-            <div id="narraportChecklistContainer" class="control-panel hidden">
-                <label id="narraportActiveEventTitle" style="display: block; text-align: center; width: 100%; color: #fff; margin-bottom: 15px;">EVENT NAME</label>
-                <label>SUBMISSION CHECKLIST</label>
-                <div class="logs-container" style="max-height: 250px;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>No.</th>
-                                <th>Name</th>
-                                <th>ID</th>
-                                <th>Course</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="narraportTableBody">
-                        </tbody>
-                    </table>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button class="action-btn" onclick="openNarraportExportModal()" style="margin-bottom: 0;">SAVE DATA</button>
-                    <button class="nav-btn" onclick="returnToEventList()" style="margin-bottom: 0;">BACK</button>
-                </div>
-            </div>
-
-            <button id="narraportDashboardReturnBtn" class="nav-btn" onclick="closeNarraport()">RETURN TO MAIN DASHBOARD</button>
-        </div>
-    </div>
-
-    <!-- TUTORIAL MODAL -->
-    <div id="tutorialModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 320px;">
-            <h3 id="tutorialTitle">STEP 1: LOGIN</h3>
-            <p id="tutorialText" style="font-size: 13px; color: #aaa; margin-bottom: 10px;">Enter your registered operator credentials or register a new account to begin using the system.</p>
-            <p style="font-size: 11px; color: #00ffcc; margin-bottom: 12px; font-style: italic;">Click the image to view it properly.</p>
-            <div style="margin-bottom: 15px; display: flex; justify-content: center;">
-                <img id="tutorialImage" src="tutorial_step1.png" alt="Tutorial Guide" style="width: 150px; height: 266px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;" onclick="openFullscreenImage(this.src)" onerror="this.style.display='none'">
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button id="tutorialNextBtn" class="action-btn" onclick="nextTutorialStep()" style="margin-bottom: 0;">NEXT</button>
-                <button class="danger-btn" onclick="closeTutorialModal()" style="margin-bottom: 0;">CLOSE</button>
+                <footer>
+                    CREATED BY <span>R CREATOR</span>
+                </footer>
             </div>
         </div>
     </div>
 
-    <!-- FULLSCREEN IMAGE VIEWER MODAL -->
-    <div id="fullscreenImageModal" class="modal-overlay hidden" onclick="closeFullscreenImage()" style="background: rgba(0, 0, 0, 0.9); z-index: 10000;">
-        <div style="position: relative; max-width: 90%; max-height: 90%;" onclick="event.stopPropagation()">
-            <img id="fullscreenImgElement" src="" alt="Full View" style="max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
-            <button class="danger-btn" onclick="closeFullscreenImage()" style="margin-top: 15px; width: 100%;">CLOSE VIEW</button>
-        </div>
+    <!-- Crop Modal -->
+    <div id="crop-modal" class="modal">
+        <div class="modal-text">PORTRAIT PHOTO DETECTED!<br>RECROP TO LANDSCAPE</div>
+        <div class="crop-container"><img id="imageToCrop" src=""></div>
+        <button id="cropSaveBtn" class="btn btn-generate">CROP & APPLY WATERMARK</button>
     </div>
 
-    <div id="exportModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>SELECT EXPORT FORMAT</h3>
-            <p style="font-size: 13px; color: #aaa; margin-bottom: 20px;">Choose file format to export attendance records:</p>
-            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                <button class="action-btn" onclick="exportData('pdf')" style="margin-bottom: 0;">PDF FORMAT</button>
-                <button class="success-btn" onclick="exportData('jpg')" style="margin-bottom: 0;">JPG IMAGE</button>
-            </div>
-            <button class="nav-btn" onclick="closeExportModal()" style="margin-bottom: 0; margin-top: 10px;">CANCEL</button>
+    <!-- Image View Modal -->
+    <div id="view-modal" class="modal">
+        <div class="modal-text" style="color: var(--neon-blue);">IMAGE PREVIEW</div>
+        <div class="view-image-container">
+            <img id="viewModalImg" src="" alt="Full Watermarked Image">
         </div>
+        <button id="closeViewModalBtn" class="btn">CLOSE</button>
     </div>
 
-    <div id="narraportExportModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>SELECT EXPORT FORMAT</h3>
-            <p style="font-size: 13px; color: #aaa; margin-bottom: 20px;">Choose file format to export narraport records:</p>
-            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                <button class="action-btn" onclick="exportNarraportData('pdf')" style="margin-bottom: 0;">PDF FORMAT</button>
-                <button class="success-btn" onclick="exportNarraportData('jpg')" style="margin-bottom: 0;">JPG IMAGE</button>
-            </div>
-            <button class="nav-btn" onclick="closeNarraportExportModal()" style="margin-bottom: 0; margin-top: 10px;">CANCEL</button>
-        </div>
-    </div>
-
-    <div id="logFilterModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 340px; text-align: left;">
-            <h3 style="text-align: center;">VIEW LOGS BY DATE</h3>
-            <label style="margin-top: 15px;">Select Target Date</label>
-            <input type="date" id="filterDateInput">
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button class="action-btn" onclick="applyDateFilter()" style="margin-bottom: 0;">VIEW LOGS</button>
-                <button class="nav-btn" onclick="resetToTodayLogs()" style="margin-bottom: 0;">RESET TO TODAY</button>
-            </div>
-            <button class="danger-btn" onclick="closeLogFilterModal()" style="margin-top: 12px; margin-bottom: 0;">CANCEL</button>
-        </div>
-    </div>
-
-    <div id="membersModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 420px; text-align: left;">
-            <h3 style="text-align: center;">REGISTERED MEMBERS</h3>
-            <p style="font-size: 12px; color: #aaa; margin-bottom: 15px; text-align: center;">All registered members in alphabetical order:</p>
-            <div class="logs-container" style="max-height: 250px; margin-bottom: 15px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>Name</th>
-                            <th>ID Number</th>
-                            <th>Course</th>
-                        </tr>
-                    </thead>
-                    <tbody id="membersTableBody">
-                    </tbody>
-                </table>
-            </div>
-            <button class="nav-btn" onclick="closeMembersModal()" style="margin-bottom: 0;">CLOSE</button>
-        </div>
-    </div>
-
-    <div id="registerStudentModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 360px; text-align: left;">
-            <h3 style="text-align: center;">REGISTER NEW MEMBER</h3>
-            <label style="margin-top: 15px;">Last Name</label>
-            <input type="text" id="regLastName" placeholder="Last Name">
-            <label>First Name</label>
-            <input type="text" id="regFirstName" placeholder="First Name">
-            <label>Middle Initial (without period)</label>
-            <input type="text" id="regMI" placeholder="Middle Initial e.g. (M)">
-            <label>ID Number</label>
-            <input type="text" id="regId" placeholder="ID Number">
-            <label>Course</label>
-            <input type="text" id="regCourse" placeholder="Course">
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button class="success-btn" onclick="registerStudent()" style="margin-bottom: 0;">SAVE STUDENT</button>
-                <button class="nav-btn" onclick="closeRegisterStudentModal()" style="margin-bottom: 0;">CANCEL</button>
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-dialog-box">
+            <div class="modal-text" style="color: var(--neon-pink); margin-bottom: 12px;">DELETE CONFIRMATION</div>
+            <p style="color: #ddd; font-size: 0.85rem; margin-bottom: 20px; line-height: 1.5; font-weight: 700;">
+                Are you sure you want to delete this photo? If this photo is deleted, it will not be included in the PDF.
+            </p>
+            <div class="btn-group">
+                <button id="cancelDeleteBtn" class="btn" style="border-color: rgba(255,255,255,0.3); color: #fff;">CANCEL</button>
+                <button id="confirmDeleteBtn" class="btn" style="background: var(--neon-pink); color: #fff; border: none;">DELETE</button>
             </div>
         </div>
     </div>
 
     <script>
-        // DOM Elements
-        const statusScreen = document.getElementById('statusScreen');
-        const welcomeText = document.getElementById('welcomeText');
-        const netStatus = document.getElementById('netStatus');
-        const logTableBody = document.getElementById('logTableBody');
-        const exportModal = document.getElementById('exportModal');
-        const logFilterModal = document.getElementById('logFilterModal');
-        const membersModal = document.getElementById('membersModal');
-        const membersTableBody = document.getElementById('membersTableBody');
-        const registerStudentModal = document.getElementById('registerStudentModal');
-        const memberSelectDropdown = document.getElementById('memberSelectDropdown');
-        const logContainerTitle = document.getElementById('logContainerTitle');
-        const narraportExportModal = document.getElementById('narraportExportModal');
-        const tutorialModal = document.getElementById('tutorialModal');
-        const fullscreenImageModal = document.getElementById('fullscreenImageModal');
-        const fullscreenImgElement = document.getElementById('fullscreenImgElement');
-
-        const narraportListContainer = document.getElementById('narraportListContainer');
-        const eventsWrapper = document.getElementById('eventsWrapper');
-        const narraportAddForm = document.getElementById('narraportAddForm');
-        const narraportChecklistContainer = document.getElementById('narraportChecklistContainer');
-        const narraportTableBody = document.getElementById('narraportTableBody');
-        const narraportDashboardReturnBtn = document.getElementById('narraportDashboardReturnBtn');
-        const narraportActiveEventTitle = document.getElementById('narraportActiveEventTitle');
-
-        let activeUsername = null;
-        let html5QrcodeScanner = null;
-        let lastScanTime = 0;
-        let lastScannedId = '';
-        let currentMode = 'LOG IN'; 
-        let viewingFilterDate = null; 
-        let currentActiveEventId = null; 
-        let currentTutorialStep = 1;
-        const totalTutorialSteps = 4;
-
-        // Fullscreen image viewer functions
-        function openFullscreenImage(imgSrc) {
-            if (!imgSrc) return;
-            fullscreenImgElement.src = imgSrc;
-            fullscreenImageModal.classList.remove('hidden');
-        }
-
-        function closeFullscreenImage() {
-            fullscreenImageModal.classList.add('hidden');
-            fullscreenImgElement.src = '';
-        }
-
-        // Strict Standard Name Formatter (Transforms any format to Miguel, Antonio M)
-        function formatStandardName(rawName) {
-            if (!rawName) return '';
-            let cleaned = rawName.trim();
-            let lastName = '';
-            let firstNamePart = '';
-
-            if (cleaned.includes(',')) {
-                let parts = cleaned.split(',');
-                lastName = parts[0].trim();
-                firstNamePart = parts.slice(1).join(',').trim();
-            } else {
-                let parts = cleaned.split(/\s+/);
-                if (parts.length > 1) {
-                    lastName = parts[parts.length - 1];
-                    firstNamePart = parts.slice(0, parts.length - 1).join(' ');
-                } else {
-                    lastName = parts[0];
-                    firstNamePart = '';
-                }
-            }
-
-            // Proper Capitalization Helper (e.g. miguel -> Miguel)
-            function capitalizeWord(w) {
-                if (!w) return '';
-                return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
-            }
-
-            let formattedLast = lastName.split('-').map(capitalizeWord).join('-');
-
-            let formattedFirst = '';
-            if (firstNamePart) {
-                let nameTokens = firstNamePart.split(/\s+/);
-                let capitalizedTokens = nameTokens.map((token, idx) => {
-                    let isInitial = (token.length === 1 || (token.length === 2 && token.endsWith('.')));
-                    if (isInitial) {
-                        return token.charAt(0).toUpperCase() + '.';
-                    }
-                    return capitalizeWord(token);
-                });
-                formattedFirst = capitalizedTokens.join(' ');
-            }
-
-            return formattedFirst ? `${formattedLast}, ${formattedFirst}` : formattedLast;
-        }
-
-        function capitalizeFirstLetter(string) {
-            if (!string) return '';
-            return string.charAt(0).toUpperCase() + string.slice(1);
-        }
-
-        function openTutorialModal() {
-            currentTutorialStep = 1;
-            updateTutorialContent();
-            tutorialModal.classList.remove('hidden');
-        }
-
-        function closeTutorialModal() {
-            tutorialModal.classList.add('hidden');
-        }
-
-        function nextTutorialStep() {
-            currentTutorialStep++;
-            if (currentTutorialStep > totalTutorialSteps) {
-                closeTutorialModal();
-                return;
-            }
-            updateTutorialContent();
-        }
-
-        function updateTutorialContent() {
-            const titleEl = document.getElementById('tutorialTitle');
-            const textEl = document.getElementById('tutorialText');
-            const imgEl = document.getElementById('tutorialImage');
-            const nextBtn = document.getElementById('tutorialNextBtn');
-
-            if (currentTutorialStep === 1) {
-                titleEl.textContent = "STEP 1: LOGIN & OPERATOR";
-                textEl.innerHTML = '<div style="margin-bottom: 8px; text-align: justify;">1. Enter your operator credentials or register a new account to access your main terminal dashboard.</div><div style="text-align: justify;">2. Click \'Register New Operator\' if you do not have an account yet.</div>';
-                imgEl.src = "tutorial_step1.png";
-            } else if (currentTutorialStep === 2) {
-                titleEl.textContent = "STEP 2: ADD TO  HOME SCREEN AS APP";
-                textEl.textContent = "Follow the details in the phone";
-                imgEl.src = "tutorial_step2.png";
-            } else if (currentTutorialStep === 3) {
-                titleEl.textContent = "STEP 3: REGISTER NEW MEMBERS";
-                textEl.innerHTML = '<div style="margin-bottom: 6px; text-align: justify;">1. Click register new members</div><div style="margin-bottom: 6px; text-align: justify;">2. Fill out the following</div><div style="margin-bottom: 6px; text-align: justify;">3. In Course, put BSCE, BSIT or etc.</div><div style="text-align: justify;">4. Click Save Student</div>';
-                imgEl.src = "tutorial_step3.png";
-            }
-            if (currentTutorialStep === totalTutorialSteps) {
-                nextBtn.textContent = "FINISH";
-            } else {
-                nextBtn.textContent = "NEXT";
-            }
-        }
-
-        function getStandardizedDate(dateObj) {
-            return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-        }
-
-        function updateScreen(text, subtext = "", color = '#00ffcc') {
-            statusScreen.innerHTML = `<span>${text}</span>${subtext ? '<br><span style="font-size: 12px; color:rgba(255,255,255,0.7); text-shadow:none;">'+subtext+'</span>' : ''}`;
-            statusScreen.style.color = color;
-            statusScreen.style.textShadow = `0px 0px 10px ${color}`;
-            statusScreen.style.borderColor = `rgba(${hexToRgb(color)}, 0.3)`;
-        }
+        const eventDateInput = document.getElementById('eventDate');
+        const imageInput = document.getElementById('imageInput');
+        const uploadWrapper = document.getElementById('uploadWrapper');
+        const uploadBtnText = document.getElementById('uploadBtnText');
+        const statusArea = document.getElementById('status-area');
+        const previewGrid = document.getElementById('previewGrid');
         
-        function hexToRgb(hex) {
-            let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0, 255, 204';
-        }
+        // Buttons
+        const generatePdfBtn = document.getElementById('generatePdfBtn');
+        const defaultGridBtn = document.getElementById('defaultGridBtn');
+        
+        // Grid Inputs
+        const pdfCols = document.getElementById('pdfCols');
+        const pdfRows = document.getElementById('pdfRows');
 
-        function toggleView(viewId) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            document.getElementById(viewId).classList.remove('hidden');
-        }
+        // Modals
+        const cropModal = document.getElementById('crop-modal');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const cropSaveBtn = document.getElementById('cropSaveBtn');
+        
+        const viewModal = document.getElementById('view-modal');
+        const viewModalImg = document.getElementById('viewModalImg');
+        const closeViewModalBtn = document.getElementById('closeViewModalBtn');
 
-        function setAttendanceMode(mode) {
-            currentMode = mode;
-            const btnIn = document.getElementById('btnLogInMode');
-            const btnOut = document.getElementById('btnLogOutMode');
+        const deleteModal = document.getElementById('delete-modal');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
-            if (mode === 'LOG IN') {
-                btnIn.className = 'success-btn';
-                btnOut.className = 'nav-btn';
-                updateScreen("MODE: LOG IN", "READY TO SCAN FOR ENTRY", "#00ffcc");
-            } else {
-                btnIn.className = 'nav-btn';
-                btnOut.className = 'danger-btn';
-                updateScreen("MODE: LOG OUT", "READY TO SCAN FOR EXIT", "#ffcc00");
-            }
-        }
+        let logoImageObj = null;
+        let fileQueue = [];
+        let finalImages = [];
+        let cropper = null;
+        let imageToDeleteIndex = null;
 
-        function openExportModal() { exportModal.classList.remove('hidden'); }
-        function closeExportModal() { exportModal.classList.add('hidden'); }
-        function openNarraportExportModal() { narraportExportModal.classList.remove('hidden'); }
-        function closeNarraportExportModal() { narraportExportModal.classList.add('hidden'); }
-
-        function openLogFilterModal() { 
-            document.getElementById('filterDateInput').value = getStandardizedDate(new Date());
-            logFilterModal.classList.remove('hidden'); 
-        }
-        function closeLogFilterModal() { logFilterModal.classList.add('hidden'); }
-
-        function openMembersModal() {
-            renderMembersList();
-            membersModal.classList.remove('hidden');
-        }
-        function closeMembersModal() { membersModal.classList.add('hidden'); }
-
-        function openRegisterStudentModal() { registerStudentModal.classList.remove('hidden'); }
-        function closeRegisterStudentModal() { registerStudentModal.classList.add('hidden'); }
-        function openDashboardRegisterModal() {
-            if (!localStorage.getItem(getStudentDBKey())) {
-                localStorage.setItem(getStudentDBKey(), JSON.stringify({}));
-            }
-            openRegisterStudentModal();
-        }
-
-        function getStudentDBKey() { return `peaci_students_${activeUsername}`; }
-        function getAttendanceKey() { return `peaci_logs_${activeUsername}`; }
-        function getNarraportDBKey() { return `peaci_narraport_${activeUsername}`; }
-        function getUsersDB() { return JSON.parse(localStorage.getItem('peaci_users_db')) || {}; }
-
-        window.addEventListener('load', () => {
-            checkOperatorState();
-            registerServiceWorker();
-            window.addEventListener('online', updateOnlineStatus);
-            window.addEventListener('offline', updateOnlineStatus);
+        // Automatically load logo from local directory
+        window.addEventListener('DOMContentLoaded', () => {
+            const img = new Image();
+            img.onload = () => { logoImageObj = img; };
+            img.onerror = () => { console.warn('NSTP.png logo not found in directory.'); };
+            img.src = 'NSTP.png';
         });
 
-        function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('./sw.js').catch((err) => console.log('SW registration failed:', err));
-            }
-        }
+        defaultGridBtn.addEventListener('click', () => {
+            pdfCols.value = 2;
+            pdfRows.value = 3;
+        });
 
-        function updateOnlineStatus() {
-            if (!activeUsername) return;
-            if (navigator.onLine) {
-                netStatus.textContent = "SYSTEM ONLINE";
-                netStatus.className = "status-badge status-online";
-                netStatus.classList.remove('hidden');
+        eventDateInput.addEventListener('change', () => {
+            if (eventDateInput.value) {
+                imageInput.disabled = false;
+                uploadWrapper.classList.remove('disabled');
+                uploadBtnText.innerText = "SELECT IMAGES";
+                statusArea.innerText = "READY TO UPLOAD IMAGES";
+                statusArea.style.color = "var(--neon-blue)";
             } else {
-                netStatus.textContent = "OFFLINE MODE";
-                netStatus.className = "status-badge status-offline";
-                netStatus.classList.remove('hidden');
+                imageInput.disabled = true;
+                uploadWrapper.classList.add('disabled');
+                uploadBtnText.innerText = "SET DATE ABOVE TO UNLOCK";
+                statusArea.innerText = "PLEASE SELECT A DATE TO BEGIN";
+                statusArea.style.color = "var(--neon-pink)";
             }
-        }
+        });
 
-        function checkOperatorState() {
-            const session = localStorage.getItem('peaci_active_session');
-            if (!session) {
-                activeUsername = null;
-                netStatus.classList.add('hidden');
-                toggleView('loginSection');
-                updateScreen("LOGIN REQUIRED", "PLEASE ENTER CREDENTIALS", "#ffcc00");
-            } else {
-                const activeUser = JSON.parse(session);
-                activeUsername = activeUser.username;
-                welcomeText.textContent = `Welcome, ${activeUser.name} (${activeUser.role})`;
-                
-                if (!localStorage.getItem(getStudentDBKey())) localStorage.setItem(getStudentDBKey(), JSON.stringify({}));
-                if (!localStorage.getItem(getAttendanceKey())) localStorage.setItem(getAttendanceKey(), JSON.stringify([]));
-                let nDB = JSON.parse(localStorage.getItem(getNarraportDBKey()));
-                if (!nDB || !nDB.events) localStorage.setItem(getNarraportDBKey(), JSON.stringify({ events: [] }));
+        imageInput.addEventListener('change', (e) => {
+            if (!eventDateInput.value) return;
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            
+            fileQueue = files;
+            finalImages = [];
+            previewGrid.innerHTML = '';
+            generatePdfBtn.disabled = true;
+            statusArea.innerText = `PROCESSING 1 OF ${fileQueue.length}...`;
+            
+            processNextFile();
+        });
 
-                normalizeExistingDatabaseNames();
-
-                updateOnlineStatus();
-                toggleView('dashboardSection');
-                viewingFilterDate = null; 
-                renderLogs(); 
-                updateScreen("SYSTEM READY", "SELECT A SERVICE BELOW", "#00ffcc");
-            }
-        }
-
-        function normalizeExistingDatabaseNames() {
-            const studentDBKey = getStudentDBKey();
-            let studentDB = JSON.parse(localStorage.getItem(studentDBKey)) || {};
-            let updated = false;
-            Object.keys(studentDB).forEach(id => {
-                let currentStoredName = studentDB[id].name;
-                let formatted = formatStandardName(currentStoredName);
-                if (currentStoredName !== formatted) {
-                    studentDB[id].name = formatted;
-                    updated = true;
+        function processNextFile() {
+            if (fileQueue.length === 0) {
+                statusArea.innerText = "ALL IMAGES WATERMARKED!";
+                statusArea.style.color = "var(--neon-blue)";
+                if (finalImages.length > 0) {
+                    generatePdfBtn.disabled = false;
                 }
-            });
-            if (updated) {
-                localStorage.setItem(studentDBKey, JSON.stringify(studentDB));
+                return;
             }
 
-            const logKey = getAttendanceKey();
-            let logs = JSON.parse(localStorage.getItem(logKey)) || [];
-            let logsUpdated = false;
-            logs.forEach(log => {
-                if (log.name) {
-                    let formattedLogName = formatStandardName(log.name);
-                    if (log.name !== formattedLogName) {
-                        log.name = formattedLogName;
-                        logsUpdated = true;
+            const file = fileQueue.shift();
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    if (img.height > img.width) {
+                        openCropper(img.src);
+                    } else {
+                        applyWatermark(img);
                     }
-                }
-            });
-            if (logsUpdated) {
-                localStorage.setItem(logKey, JSON.stringify(logs));
-            }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         }
 
-        function registerOperator() {
-            const username = document.getElementById('regUsername').value.trim();
-            const password = document.getElementById('regPassword').value.trim();
-            const name = capitalizeFirstLetter(document.getElementById('opName').value.trim());
-            const role = capitalizeFirstLetter(document.getElementById('opRole').value.trim());
-
-            if (!username || !password || !name || !role) {
-                updateScreen("ERROR", "FILL OUT ALL FIELDS", "#ff3333");
-                return;
-            }
-
-            const usersDB = getUsersDB();
-            if (usersDB[username]) {
-                updateScreen("ERROR", "USERNAME ALREADY EXISTS", "#ff3333");
-                return;
-            }
-
-            usersDB[username] = { password, name, role };
-            localStorage.setItem('peaci_users_db', JSON.stringify(usersDB));
+        function openCropper(imageSrc) {
+            cropModal.style.display = 'flex';
+            imageToCrop.src = imageSrc;
             
-            document.getElementById('regUsername').value = '';
-            document.getElementById('regPassword').value = '';
-            document.getElementById('opName').value = '';
-            document.getElementById('opRole').value = '';
-
-            updateScreen("SUCCESS", "OPERATOR SAVED. PLEASE LOGIN.", "#00ffcc");
-            toggleView('loginSection');
+            if (cropper) cropper.destroy();
+            
+            cropper = new Cropper(imageToCrop, {
+                aspectRatio: 3 / 2,
+                viewMode: 2,
+                autoCropArea: 1,
+                guides: true,
+                center: true,
+            });
         }
 
-        function login() {
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
-            const usersDB = getUsersDB();
-            const user = usersDB[username];
+        cropSaveBtn.addEventListener('click', () => {
+            if (!cropper) return;
+            const croppedCanvas = cropper.getCroppedCanvas({
+                width: 1200,
+                height: 800,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+            
+            const croppedImg = new Image();
+            croppedImg.onload = () => {
+                cropModal.style.display = 'none';
+                cropper.destroy();
+                cropper = null;
+                applyWatermark(croppedImg);
+            };
+            croppedImg.src = croppedCanvas.toDataURL('image/jpeg', 0.9);
+        });
 
-            if (user && user.password === password) {
-                localStorage.setItem('peaci_active_session', JSON.stringify({ username, name: user.name, role: user.role }));
-                document.getElementById('loginUsername').value = '';
-                document.getElementById('loginPassword').value = '';
-                checkOperatorState();
+        function applyWatermark(sourceImg) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = 1200;
+            canvas.height = 800;
+
+            const scale = Math.max(canvas.width / sourceImg.width, canvas.height / sourceImg.height);
+            const drawWidth = sourceImg.width * scale;
+            const drawHeight = sourceImg.height * scale;
+            const offsetX = (canvas.width - drawWidth) / 2;
+            const offsetY = (canvas.height - drawHeight) / 2;
+
+            ctx.drawImage(sourceImg, offsetX, offsetY, drawWidth, drawHeight);
+            ctx.globalAlpha = 0.75;
+
+            const rawDate = new Date(eventDateInput.value);
+            const formattedDate = rawDate.toLocaleDateString('en-US', { 
+                year: 'numeric', month: 'long', day: 'numeric' 
+            });
+
+            const logoSize = logoImageObj ? 90 : 0;
+            const gap = logoImageObj ? 20 : 0;
+            const text1 = "NSTP-CWTS 2026-2027";
+            const text2 = formattedDate;
+
+            ctx.font = "bold 34px Poppins, sans-serif";
+            const text1Width = ctx.measureText(text1).width;
+            const text2Width = ctx.measureText(text2).width;
+            const maxTextWidth = Math.max(text1Width, text2Width);
+            const totalBlockWidth = logoSize + gap + maxTextWidth;
+
+            let startX = (canvas.width - totalBlockWidth) / 2;
+            const bottomMargin = 50; 
+            const centerY = canvas.height - bottomMargin - (logoSize / 2 || 45); 
+
+            ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "left";
+
+            if (logoImageObj) {
+                ctx.drawImage(logoImageObj, startX, centerY - (logoSize / 2), logoSize, logoSize);
+                startX += logoSize + gap;
+            }
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(text1, startX, centerY - 20);
+            
+            ctx.fillStyle = "#00f3ff";
+            ctx.fillText(text2, startX, centerY + 24);
+
+            ctx.globalAlpha = 1.0;
+
+            const finalDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            finalImages.push(finalDataUrl);
+            
+            renderGrid();
+
+            if (fileQueue.length > 0) {
+                statusArea.innerText = `PROCESSING NEXT... (${fileQueue.length} REMAINING)`;
+                processNextFile();
             } else {
-                updateScreen("ACCESS DENIED", "INVALID CREDENTIALS", "#ff3333");
+                processNextFile();
             }
         }
 
-        function logout() {
-            if (confirm("Are you sure you want to logout?")) {
-                localStorage.removeItem('peaci_active_session');
-                activeUsername = null;
-                checkOperatorState();
-            }
-        }
+        function renderGrid() {
+            previewGrid.innerHTML = '';
+            
+            finalImages.forEach((imgData, index) => {
+                const card = document.createElement('div');
+                card.className = 'preview-card';
 
-        function openNarraport() {
-            toggleView('narraportSection');
-            updateScreen("NARRAPORT", "MANAGE EVENT SUBMISSIONS", "#00ffcc");
-            renderEventList();
-        }
+                const img = document.createElement('img');
+                img.src = imgData;
+                img.className = 'preview-img';
 
-        function closeNarraport() {
-            toggleView('dashboardSection');
-            updateScreen("SYSTEM READY", "SELECT A SERVICE BELOW", "#00ffcc");
-        }
+                const actions = document.createElement('div');
+                actions.className = 'card-actions';
 
-        function renderEventList() {
-            narraportListContainer.classList.remove('hidden');
-            narraportAddForm.classList.add('hidden');
-            narraportChecklistContainer.classList.add('hidden');
-            narraportDashboardReturnBtn.classList.remove('hidden');
-            currentActiveEventId = null;
+                const viewBtn = document.createElement('button');
+                viewBtn.className = 'card-btn card-btn-view';
+                viewBtn.innerText = 'VIEW';
+                viewBtn.onclick = () => openViewModal(imgData);
 
-            let db = JSON.parse(localStorage.getItem(getNarraportDBKey())) || { events: [] };
-            eventsWrapper.innerHTML = '';
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'card-btn card-btn-delete';
+                deleteBtn.innerText = 'DELETE';
+                deleteBtn.onclick = () => openDeleteModal(index);
 
-            if (db.events.length === 0) {
-                eventsWrapper.innerHTML = `<p style="text-align:center; color:#aaa; font-size:12px;">No events registered yet.</p>`;
-                return;
-            }
+                actions.appendChild(viewBtn);
+                actions.appendChild(deleteBtn);
 
-            db.events.slice().reverse().forEach(evt => {
-                const btn = document.createElement('button');
-                btn.className = 'event-btn';
-                btn.textContent = evt.name;
-                btn.onclick = () => openEventDetails(evt.id);
-                eventsWrapper.appendChild(btn);
+                card.appendChild(img);
+                card.appendChild(actions);
+
+                previewGrid.appendChild(card);
             });
         }
 
-        function openAddEventForm() {
-            narraportListContainer.classList.add('hidden');
-            narraportChecklistContainer.classList.add('hidden');
-            narraportAddForm.classList.remove('hidden');
-            narraportDashboardReturnBtn.classList.add('hidden');
-            
-            document.getElementById('narraportEventName').value = '';
-            document.getElementById('narraportDate').value = '';
-            document.getElementById('narraportDeadline').value = '';
-            
-            updateScreen("NEW EVENT", "ENTER DETAILS BELOW", "#00ffcc");
+        function openViewModal(imgSrc) {
+            viewModalImg.src = imgSrc;
+            viewModal.style.display = 'flex';
         }
 
-        function closeAddEventForm() {
-            renderEventList();
-            updateScreen("NARRAPORT", "MANAGE EVENT SUBMISSIONS", "#00ffcc");
+        closeViewModalBtn.addEventListener('click', () => {
+            viewModal.style.display = 'none';
+            viewModalImg.src = '';
+        });
+
+        function openDeleteModal(index) {
+            imageToDeleteIndex = index;
+            deleteModal.style.display = 'flex';
         }
 
-        function saveNewEvent() {
-            const name = capitalizeFirstLetter(document.getElementById('narraportEventName').value.trim());
-            const date = document.getElementById('narraportDate').value;
-            const deadline = document.getElementById('narraportDeadline').value;
+        cancelDeleteBtn.addEventListener('click', () => {
+            deleteModal.style.display = 'none';
+            imageToDeleteIndex = null;
+        });
 
-            if(!name || !date || !deadline) {
-                updateScreen("ERROR", "FILL ALL EVENT DETAILS", "#ff3333");
-                return;
-            }
-            
-            let db = JSON.parse(localStorage.getItem(getNarraportDBKey())) || { events: [] };
-            
-            const newEvent = { id: 'evt_' + Date.now(), name: name, date: date, deadline: deadline, submissions: {} };
-            db.events.push(newEvent);
-            localStorage.setItem(getNarraportDBKey(), JSON.stringify(db));
-            
-            updateScreen("SUCCESS", "EVENT SAVED", "#00ffcc");
-            renderEventList();
-        }
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (imageToDeleteIndex !== null) {
+                finalImages.splice(imageToDeleteIndex, 1);
+                renderGrid();
 
-        function openEventDetails(eventId) {
-            currentActiveEventId = eventId;
-            let db = JSON.parse(localStorage.getItem(getNarraportDBKey())) || { events: [] };
-            const activeEvent = db.events.find(e => e.id === eventId);
-            
-            if(!activeEvent) return;
-
-            narraportListContainer.classList.add('hidden');
-            narraportAddForm.classList.add('hidden');
-            narraportDashboardReturnBtn.classList.add('hidden');
-            narraportChecklistContainer.classList.remove('hidden');
-            
-            narraportActiveEventTitle.textContent = activeEvent.name.toUpperCase();
-            updateScreen("EVENT OPEN", activeEvent.name, "#00ffcc");
-
-            renderNarraportMembers(activeEvent);
-        }
-
-        function returnToEventList() {
-            renderEventList();
-            updateScreen("NARRAPORT", "MANAGE EVENT SUBMISSIONS", "#00ffcc");
-        }
-
-        function renderNarraportMembers(activeEvent) {
-            const studentDB = JSON.parse(localStorage.getItem(getStudentDBKey())) || {};
-            const members = Object.keys(studentDB).map(id => ({
-                id: id, name: formatStandardName(studentDB[id].name), course: capitalizeFirstLetter(studentDB[id].course || 'N/A')
-            })).sort((a, b) => a.name.localeCompare(b.name));
-
-            narraportTableBody.innerHTML = '';
-            if (members.length === 0) {
-                narraportTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: #aaa;">No registered members found.</td></tr>`;
-                return;
-            }
-
-            members.forEach((m, index) => {
-                const isSubmitted = activeEvent.submissions[m.id];
-                const row = document.createElement('tr');
-                
-                if (!isSubmitted) {
-                    row.classList.add('row-not-submitted');
+                if (finalImages.length === 0) {
+                    generatePdfBtn.disabled = true;
+                    statusArea.innerText = "NO IMAGES REMAINING";
+                    statusArea.style.color = "var(--neon-pink)";
+                } else {
+                    statusArea.innerText = `${finalImages.length} IMAGE(S) READY FOR PDF`;
+                    statusArea.style.color = "var(--neon-blue)";
                 }
-
-                let actionHTML = isSubmitted 
-                    ? `<span style="color: #2ecc71; font-weight: bold; text-shadow: 0 0 5px rgba(46,204,113,0.5);">SUBMITTED</span>`
-                    : `<button class="success-btn" style="padding: 6px; font-size: 11px; margin-bottom: 0; width: 100%; border-radius: 6px;" onclick="markNarraportSubmitted('${m.id}')">SUBMIT</button>`;
-
-                row.innerHTML = `<td style="text-align: center;">${index + 1}</td><td>${m.name}</td><td>${m.id}</td><td>${m.course}</td><td style="text-align: center; vertical-align: middle;">${actionHTML}</td>`;
-                narraportTableBody.appendChild(row);
-            });
-        }
-
-        function markNarraportSubmitted(id) {
-            let db = JSON.parse(localStorage.getItem(getNarraportDBKey())) || { events: [] };
-            const eventIndex = db.events.findIndex(e => e.id === currentActiveEventId);
-            
-            if (eventIndex !== -1) {
-                if (!db.events[eventIndex].submissions) db.events[eventIndex].submissions = {};
-                db.events[eventIndex].submissions[id] = true;
-                localStorage.setItem(getNarraportDBKey(), JSON.stringify(db));
-                
-                renderNarraportMembers(db.events[eventIndex]);
-                updateScreen("SUBMITTED", `ID: ${id} MARKED AS SUBMITTED`, "#00ffcc");
             }
-        }
+            deleteModal.style.display = 'none';
+            imageToDeleteIndex = null;
+        });
 
-        function getProcessedNarraportData() {
-            let db = JSON.parse(localStorage.getItem(getNarraportDBKey())) || { events: [] };
-            const activeEvent = db.events.find(e => e.id === currentActiveEventId);
-            if (!activeEvent) return [];
-
-            const studentDB = JSON.parse(localStorage.getItem(getStudentDBKey())) || {};
-            const members = Object.keys(studentDB).map(id => ({
-                id: id,
-                name: formatStandardName(studentDB[id].name),
-                course: capitalizeFirstLetter(studentDB[id].course || 'N/A'),
-                status: activeEvent.submissions[id] ? "SUBMITTED" : "NOT YET SUBMITTED"
-            })).sort((a, b) => a.name.localeCompare(b.name));
-
-            return { members, activeEvent };
-        }
-
-        function exportData(type) {
-            closeExportModal();
-            const data = getProcessedAttendanceData();
-            if (Object.keys(data).length === 0) return alert("No members found to export.");
-            const recordsArray = Object.values(data).sort((a, b) => a.name.localeCompare(b.name));
-            type === 'pdf' ? generatePDF(recordsArray) : generateJPG(recordsArray);
-        }
-
-        function exportNarraportData(type) {
-            closeNarraportExportModal();
-            const data = getProcessedNarraportData();
-            if (!data.members || data.members.length === 0) return alert("No members found to export.");
-            type === 'pdf' ? generateNarraportPDF(data.members, data.activeEvent) : generateNarraportJPG(data.members, data.activeEvent);
-        }
-
-        function getFormattedDateString(dateVal) {
-            let d = dateVal ? new Date(dateVal) : new Date();
-            if (isNaN(d.getTime())) {
-                if (typeof dateVal === 'string' && dateVal.includes('-')) {
-                    let parts = dateVal.split('-');
-                    d = new Date(parts[0], parts[1]-1, parts[2]);
-                } else d = new Date();
-            }
-            return `${d.toLocaleString('default', { month: 'long' })} - ${String(d.getDate()).padStart(2, '0')} - ${d.getFullYear()}`;
-        }
-
-        function generateNarraportPDF(records, details) {
-            if (!window.jspdf) return alert("PDF library is not loaded properly.");
+        // Optimized PDF layout algorithm for proper grid fitting
+        function createPdfObject() {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ format: 'a4' });
+            const pdf = new jsPDF('p', 'mm', 'a4');
             
-            const activeUser = JSON.parse(localStorage.getItem('peaci_active_session'));
-            const formattedDate = getFormattedDateString(new Date());
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const logo = document.getElementById('pdfLogo');
+            const cols = Math.max(1, parseInt(pdfCols.value) || 2);
+            const rows = Math.max(1, parseInt(pdfRows.value) || 3);
+            
+            const marginX = 8;
+            const marginY = 8;
+            const gap = (rows > 4 || cols > 3) ? 3 : 4; 
+            
+            const pageWidth = 210;
+            const pageHeight = 297;
+            
+            const availableWidth = pageWidth - (marginX * 2);
+            const availableHeight = pageHeight - (marginY * 2);
+            
+            const aspectRatio = 1.5; // 3:2 landscape ratio
 
-            doc.autoTable({
-                head: [["NO.", "NAME", "ID NUMBER", "COURSE", "STATUS"]],
-                body: records.map((r, index) => [index + 1, r.name, r.id, r.course, r.status]),
-                startY: 60,
-                theme: 'grid',
-                headStyles: { fillColor: [30, 35, 40], textColor: [255, 255, 255], fontStyle: 'bold', font: 'times' },
-                styles: { fontSize: 12, cellPadding: 2, font: 'times' },
-                columnStyles: { 0: { cellWidth: 15, halign: 'center' } },
-                margin: { top: 60, bottom: 30 },
-                didParseCell: function(data) {
-                    if (data.section === 'body') {
-                        if (data.row.raw[4] === "NOT YET SUBMITTED") {
-                            data.cell.styles.fillColor = [231, 76, 60];
-                            data.cell.styles.textColor = [255, 255, 255];
-                        }
-                    }
-                },
-                didDrawPage: function(data) {
-                    try { 
-                        if (logo) {
-                            let imgW = 24;
-                            let imgH = 24;
-                            if (logo.naturalWidth && logo.naturalHeight) {
-                                imgH = (logo.naturalHeight * imgW) / logo.naturalWidth;
-                            }
-                            doc.addImage(logo, 'PNG', (pageWidth/2) - (imgW/2), 8, imgW, imgH); 
-                        }
-                    } catch(e) {}
-                    
-                    doc.setFontSize(12);
-                    doc.setFont("times", "bold");
-                    doc.text("PHILIPPINE ENGINEERING and AGRO-INDUSTRIAL COLLEGE, INC.", pageWidth/2, 36, { align: "center" });
-                    doc.setFontSize(12);
-                    doc.setFont("times", "normal");
-                    doc.text("National Training Service Program - Civic Welfare and Training Service", pageWidth/2, 42, { align: "center" });
-                    
-                    doc.setFontSize(12);
-                    doc.setFont("times", "bold");
-                    doc.text(details.name.toUpperCase(), pageWidth/2, 48, { align: "center" });
-                    
-                    doc.setFontSize(12);
-                    doc.setFont("times", "normal");
-                    doc.text(formattedDate, pageWidth - 14, 54, { align: "right" });
+            // Calculate max cell width bounded by available page width & height
+            const maxWByWidth = (availableWidth - (gap * (cols - 1))) / cols;
+            const maxWByHeight = aspectRatio * ((availableHeight - (gap * (rows - 1))) / rows);
 
-                    doc.setFontSize(10);
-                    doc.setFont("times", "normal");
-                    doc.text("Page 1 of 1", pageWidth - 14, 15, { align: "right" });
+            const cellWidth = Math.min(maxWByWidth, maxWByHeight);
+            const cellHeight = cellWidth / aspectRatio;
 
-                    doc.setLineWidth(0.5);
-                    doc.line(14, 57, pageWidth - 14, 57);
+            const actualGridWidth = (cellWidth * cols) + (gap * (cols - 1));
+            const actualGridHeight = (cellHeight * rows) + (gap * (rows - 1));
 
-                    const opName = capitalizeFirstLetter(activeUser.name);
-                    const opRole = capitalizeFirstLetter(activeUser.role);
-                    const footerY = doc.internal.pageSize.getHeight() - 20;
-                    
-                    doc.setFontSize(12);
-                    doc.setFont("times", "bold");
-                    const nameWidth = doc.getTextWidth(opName);
-                    doc.setFont("times", "normal");
-                    const roleWidth = doc.getTextWidth(opRole);
-                    
-                    const sigWidth = Math.max(nameWidth, roleWidth, 60);
-                    const sigCenterX = 14 + (sigWidth / 2);
+            // Center grid precisely on the A4 page
+            const startX = (pageWidth - actualGridWidth) / 2;
+            const startY = (pageHeight - actualGridHeight) / 2;
 
-                    doc.setFont("times", "bold");
-                    doc.text(opName, sigCenterX, footerY, { align: "center" });
-                    
-                    doc.setLineWidth(0.5);
-                    doc.line(sigCenterX - (sigWidth/2), footerY + 1, sigCenterX + (sigWidth/2), footerY + 1);
+            let currentX = startX;
+            let currentY = startY;
+            let colIdx = 0;
+            let rowIdx = 0;
 
-                    doc.setFont("times", "normal");
-                    doc.text(opRole, sigCenterX, footerY + 6, { align: "center" });
+            finalImages.forEach((imgData, index) => {
+                if (index > 0 && colIdx === 0 && rowIdx === 0) {
+                    pdf.addPage();
                 }
-            });
 
-            const fileName = `NSTP_Narraport_${details.name.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-            doc.save(fileName);
-            updateScreen("EXPORT SUCCESS", `PDF SAVED AS ${fileName}`, "#00ffcc");
-        }
-
-        function generateNarraportJPG(records, details) {
-            const container = document.createElement('div');
-            container.style.position = 'absolute';
-            container.style.left = '-9999px';
-            container.style.top = '0';
-            
-            const activeUser = JSON.parse(localStorage.getItem('peaci_active_session'));
-            const formattedDate = getFormattedDateString(new Date());
-
-            const chunks = [];
-            for (let i = 0; i < records.length; i += 40) chunks.push(records.slice(i, i + 40));
-            if (chunks.length === 0) chunks.push([]);
-
-            chunks.forEach((chunk, pageIndex) => {
-                const page = document.createElement('div');
-                page.style.width = '794px';
-                page.style.height = '1123px';
-                page.style.background = '#ffffff';
-                page.style.color = '#000000';
-                page.style.fontFamily = "'Times New Roman', 'Arial Narrow', serif";
-                page.style.padding = '40px';
-                page.style.boxSizing = 'border-box';
-                page.style.position = 'relative';
+                pdf.addImage(imgData, 'JPEG', currentX, currentY, cellWidth, cellHeight);
                 
-                let globalOffset = pageIndex * 40;
+                colIdx++;
+                if (colIdx >= cols) {
+                    colIdx = 0;
+                    rowIdx++;
+                    currentX = startX;
+                    currentY += cellHeight + gap;
+                } else {
+                    currentX += cellWidth + gap;
+                }
 
-                page.innerHTML = `
-                    <div style="position:absolute; top:20px; right:40px; font-size:12px; font-family:'Times New Roman', 'Arial Narrow', serif;">Page 1 of 1</div>
-                    <div style="text-align:center;">
-                        <img src="NSTP.png" style="width:70px; height:auto; object-fit:contain; margin-bottom:2px;" onerror="this.style.display='none'">
-                        <h3 style="margin:0; font-size:12px;">PHILIPPINE ENGINEERING and AGRO-INDUSTRIAL COLLEGE, INC.</h3>
-                        <h4 style="margin:5px 0 10px 0; font-size:12px; font-weight:normal;">National Training Service Program - Civic Welfare and Training Service</h4>
-                    </div>
-                    <div style="margin-top:20px;">
-                        <div style="font-size:12px; font-weight:bold; text-align:center;">${details.name.toUpperCase()}</div>
-                        <div style="width:100%; text-align:right; font-size:12px; margin-top:5px;">${formattedDate}</div>
-                    </div>
-                    <hr style="border:0; border-top:1.5px solid #000; margin-bottom:15px; margin-top:10px;">
-
-                    <table style="width:100%; border-collapse:collapse; font-size:12px; color:#000000;">
-                        <thead>
-                            <tr style="background:#222; color:#fff;">
-                                <th style="padding:8px; border:1px solid #000; width:40px; text-align:center;">NO.</th>
-                                <th style="padding:8px; border:1px solid #000;">NAME</th>
-                                <th style="padding:8px; border:1px solid #000;">ID NUMBER</th>
-                                <th style="padding:8px; border:1px solid #000;">COURSE</th>
-                                <th style="padding:8px; border:1px solid #000;">STATUS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${chunk.map((r, i) => `
-                                <tr style="color:#000000; ${r.status === 'NOT YET SUBMITTED' ? 'background-color:rgba(231, 76, 60, 0.8); color:#ffffff;' : ''}">
-                                    <td style="padding:6px; border:1px solid #000; text-align:center;">${globalOffset + i + 1}</td>
-                                    <td style="padding:6px; border:1px solid #000; font-weight:bold;">${r.name}</td>
-                                    <td style="padding:6px; border:1px solid #000; text-align:center;">${r.id}</td>
-                                    <td style="padding:6px; border:1px solid #000; text-align:center;">${r.course}</td>
-                                    <td style="padding:6px; border:1px solid #000; text-align:center; color:${r.status === 'SUBMITTED' ? '#1e8449' : '#ffffff'}; font-weight:bold;">${r.status}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-
-                    <div style="position:absolute; bottom:60px; left:40px; text-align:center; color:#000; min-width: 180px; display: flex; flex-direction: column; align-items: center;">
-                        <div style="font-weight:bold; font-size:12px; border-bottom: 1px solid #000; padding-bottom: 2px; width: 100%;">${capitalizeFirstLetter(activeUser.name)}</div>
-                        <div style="font-size:12px; margin-top:3px;">${capitalizeFirstLetter(activeUser.role)}</div>
-                    </div>
-                `;
-                container.appendChild(page);
-            });
-
-            document.body.appendChild(container);
-            html2canvas(container, { scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `NSTP_Narraport_${details.name.replace(/[^a-z0-9]/gi, '_')}.jpg`;
-                link.href = canvas.toDataURL('image/jpeg', 0.9);
-                link.click();
-                document.body.removeChild(container);
-                updateScreen("EXPORT SUCCESS", `JPG IMAGE SAVED`, "#00ffcc");
-            });
-        }
-
-        function generatePDF(records) {
-            if (!window.jspdf) return alert("PDF library is not loaded properly.");
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ format: 'a4' });
-            
-            const activeUser = JSON.parse(localStorage.getItem('peaci_active_session'));
-            const formattedDate = getFormattedDateString(viewingFilterDate);
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const logo = document.getElementById('pdfLogo');
-
-            doc.autoTable({
-                head: [["NO.", "NAME", "ID NUMBER", "COURSE", "LOG IN", "LOG OUT"]],
-                body: records.map((r, index) => [index + 1, r.name, r.id, r.course, r.login, r.logout]),
-                startY: 54,
-                theme: 'grid',
-                headStyles: { fillColor: [30, 35, 40], textColor: [255, 255, 255], fontStyle: 'bold', font: 'times' },
-                styles: { fontSize: 12, cellPadding: 2, font: 'times' },
-                columnStyles: { 0: { cellWidth: 15, halign: 'center' } },
-                margin: { top: 54, bottom: 30 },
-                didParseCell: function(data) {
-                    if (data.section === 'body' && (data.column.index === 4 || data.column.index === 5)) {
-                        if (data.cell.raw === "NO LOG IN" || data.cell.raw === "NO LOG OUT") {
-                            data.cell.styles.fillColor = [231, 76, 60];
-                            data.cell.styles.textColor = [255, 255, 255];
-                        }
-                    }
-                },
-                didDrawPage: function(data) {
-                    try { 
-                        if (logo) {
-                            let imgW = 24;
-                            let imgH = 24;
-                            if (logo.naturalWidth && logo.naturalHeight) {
-                                imgH = (logo.naturalHeight * imgW) / logo.naturalWidth;
-                            }
-                            doc.addImage(logo, 'PNG', (pageWidth/2) - (imgW/2), 8, imgW, imgH); 
-                        }
-                    } catch(e) {}
-                    
-                    doc.setFontSize(12);
-                    doc.setFont("times", "bold");
-                    doc.text("PHILIPPINE ENGINEERING and AGRO-INDUSTRIAL COLLEGE, INC.", pageWidth/2, 36, { align: "center" });
-                    doc.setFontSize(12);
-                    doc.setFont("times", "normal");
-                    doc.text("National Training Service Program - Civic Welfare and Training Service", pageWidth/2, 42, { align: "center" });
-                    doc.text(formattedDate, pageWidth - 14, 48, { align: "right" });
-
-                    doc.setFontSize(10);
-                    doc.setFont("times", "normal");
-                    doc.text("Page 1 of 1", pageWidth - 14, 15, { align: "right" });
-
-                    doc.setLineWidth(0.5);
-                    doc.line(14, 51, pageWidth - 14, 51);
-
-                    const opName = capitalizeFirstLetter(activeUser.name);
-                    const opRole = capitalizeFirstLetter(activeUser.role);
-                    const footerY = doc.internal.pageSize.getHeight() - 20;
-                    
-                    doc.setFontSize(12);
-                    doc.setFont("times", "bold");
-                    const nameWidth = doc.getTextWidth(opName);
-                    doc.setFont("times", "normal");
-                    const roleWidth = doc.getTextWidth(opRole);
-                    
-                    const sigWidth = Math.max(nameWidth, roleWidth, 60);
-                    const sigCenterX = 14 + (sigWidth / 2);
-
-                    doc.setFont("times", "bold");
-                    doc.text(opName, sigCenterX, footerY, { align: "center" });
-                    
-                    doc.setLineWidth(0.5);
-                    doc.line(sigCenterX - (sigWidth/2), footerY + 1, sigCenterX + (sigWidth/2), footerY + 1);
-
-                    doc.setFont("times", "normal");
-                    doc.text(opRole, sigCenterX, footerY + 6, { align: "center" });
+                if (rowIdx >= rows) {
+                    rowIdx = 0;
+                    currentX = startX;
+                    currentY = startY;
                 }
             });
 
-            doc.save(`NSTP_Attendance_${formattedDate}.pdf`);
-            updateScreen("EXPORT SUCCESS", `PDF GENERATED`, "#00ffcc");
+            return pdf;
         }
 
-        function generateJPG(records) {
-            const container = document.createElement('div');
-            container.style.position = 'absolute';
-            container.style.left = '-9999px';
-            container.style.top = '0';
-            
-            const activeUser = JSON.parse(localStorage.getItem('peaci_active_session'));
-            const formattedDate = getFormattedDateString(viewingFilterDate);
-
-            const chunks = [];
-            for (let i = 0; i < records.length; i += 40) chunks.push(records.slice(i, i + 40));
-            if (chunks.length === 0) chunks.push([]);
-
-            chunks.forEach((chunk, pageIndex) => {
-                const page = document.createElement('div');
-                page.style.width = '794px';
-                page.style.height = '1123px';
-                page.style.background = '#ffffff';
-                page.style.color = '#000000';
-                page.style.fontFamily = "'Times New Roman', 'Arial Narrow', serif";
-                page.style.padding = '40px';
-                page.style.boxSizing = 'border-box';
-                page.style.position = 'relative';
-                
-                let globalOffset = pageIndex * 40;
-
-                page.innerHTML = `
-                    <div style="position:absolute; top:20px; right:40px; font-size:12px; font-family:'Times New Roman', 'Arial Narrow', serif;">Page 1 of 1</div>
-                    <div style="text-align:center;">
-                        <img src="NSTP.png" style="width:70px; height:auto; object-fit:contain; margin-bottom:2px;" onerror="this.style.display='none'">
-                        <h3 style="margin:0; font-size:12px;">PHILIPPINE ENGINEERING and AGRO-INDUSTRIAL COLLEGE, INC.</h3>
-                        <h4 style="margin:5px 0 10px 0; font-size:12px; font-weight:normal;">National Training Service Program - Civic Welfare and Training Service</h4>
-                    </div>
-                    <div style="width:100%; text-align:right; font-size:12px; margin-top:20px;">${formattedDate}</div>
-                    <hr style="border:0; border-top:1.5px solid #000; margin-bottom:15px; margin-top:10px;">
-
-                    <table style="width:100%; border-collapse:collapse; font-size:12px; color:#000000;">
-                        <thead>
-                            <tr style="background:#222; color:#fff;">
-                                <th style="padding:8px; border:1px solid #000; width:40px; text-align:center;">NO.</th>
-                                <th style="padding:8px; border:1px solid #000;">NAME</th>
-                                <th style="padding:8px; border:1px solid #000;">ID NUMBER</th>
-                                <th style="padding:8px; border:1px solid #000;">COURSE</th>
-                                <th style="padding:8px; border:1px solid #000;">LOG IN</th>
-                                <th style="padding:8px; border:1px solid #000;">LOG OUT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${chunk.map((r, i) => `
-                                <tr style="color:#000000;">
-                                    <td style="padding:6px; border:1px solid #000; text-align:center;">${globalOffset + i + 1}</td>
-                                    <td style="padding:6px; border:1px solid #000; font-weight:bold;">${r.name}</td>
-                                    <td style="padding:6px; border:1px solid #000; text-align:center;">${r.id}</td>
-                                    <td style="padding:6px; border:1px solid #000; text-align:center;">${r.course}</td>
-                                    <td style="padding:6px; border:1px solid #000; text-align:center; ${r.login === 'NO LOG IN' ? 'background-color:rgba(231, 76, 60, 0.8); color:#ffffff;' : 'color:#1e8449; font-weight:bold;'}">${r.login}</td>
-                                    <td style="padding:6px; border:1px solid #000; text-align:center; ${r.logout === 'NO LOG OUT' ? 'background-color:rgba(231, 76, 60, 0.8); color:#ffffff;' : 'color:#1e8449; font-weight:bold;'}">${r.logout}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-
-                    <div style="position:absolute; bottom:60px; left:40px; text-align:center; color:#000; min-width: 180px; display: flex; flex-direction: column; align-items: center;">
-                        <div style="font-weight:bold; font-size:12px; border-bottom: 1px solid #000; padding-bottom: 2px; width: 100%;">${capitalizeFirstLetter(activeUser.name)}</div>
-                        <div style="font-size:12px; margin-top:3px;">${capitalizeFirstLetter(activeUser.role)}</div>
-                    </div>
-                `;
-                container.appendChild(page);
-            });
-
-            document.body.appendChild(container);
-
-            html2canvas(container, { scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `NSTP_Attendance_${formattedDate}.jpg`;
-                link.href = canvas.toDataURL('image/jpeg', 0.9);
-                link.click();
-                document.body.removeChild(container);
-                updateScreen("EXPORT SUCCESS", `JPG IMAGE SAVED`, "#00ffcc");
-            });
-        }
-
-        function openAttendance() {
-            toggleView('attendanceSection');
-            setAttendanceMode('LOG IN');
-            populateMemberDropdown();
-            renderLogs();
-        }
-
-        function closeAttendance() {
-            stopCameraScanner();
-            toggleView('dashboardSection');
-            updateScreen("SYSTEM READY", "SELECT A SERVICE BELOW", "#00ffcc");
-        }
-
-        function registerStudent() {
-            const lastName = document.getElementById('regLastName').value.trim();
-            const firstName = document.getElementById('regFirstName').value.trim();
-            const mi = document.getElementById('regMI').value.trim();
-            const idNumber = document.getElementById('regId').value.trim();
-            const course = capitalizeFirstLetter(document.getElementById('regCourse').value.trim());
-
-            if (!lastName || !firstName || !idNumber || !course) return updateScreen("REGISTRATION ERROR", "FILL OUT REQUIRED FIELDS", "#ff3333");
-
-            let rawCombined = `${lastName}, ${firstName}${mi ? ' ' + mi : ''}`;
-            let formattedName = formatStandardName(rawCombined);
-
-            const dbKey = getStudentDBKey();
-            let db = JSON.parse(localStorage.getItem(dbKey)) || {};
-            db[idNumber] = { name: formattedName, course: course };
-            localStorage.setItem(dbKey, JSON.stringify(db));
-
-            updateScreen("SUCCESS", `SAVED: ${formattedName}`, "#00ffcc");
-            document.getElementById('regLastName').value = '';
-            document.getElementById('regFirstName').value = '';
-            document.getElementById('regMI').value = '';
-            document.getElementById('regId').value = '';
-            document.getElementById('regCourse').value = '';
-            closeRegisterStudentModal();
-            populateMemberDropdown();
-        }
-
-        function processAttendance(scannedId) {
-            const cleanId = scannedId.trim();
-            if (!cleanId) return;
-
-            const now = Date.now();
-            if (cleanId === lastScannedId && (now - lastScanTime) < 3000) return; 
-            
-            lastScanTime = now; lastScannedId = cleanId;
-
-            const dbKey = getStudentDBKey(); const logKey = getAttendanceKey();
-            let db = JSON.parse(localStorage.getItem(dbKey)) || {};
-            let logs = JSON.parse(localStorage.getItem(logKey)) || [];
-
-            if (db[cleanId]) {
-                const student = db[cleanId];
-                const normalizedStudentName = formatStandardName(student.name);
-                const nowObj = new Date();
-                const dateStr = nowObj.toLocaleDateString();
-                const isoDate = getStandardizedDate(nowObj);
-                const timeStr = nowObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                const timestamp = nowObj.getTime();
-
-                if (logs.some(log => log.id === cleanId && log.mode === currentMode && log.isoDate === isoDate)) {
-                    return updateScreen("ALREADY SCANNED", `${normalizedStudentName} HAS ALREADY ${currentMode} TODAY`, "#ffcc00");
-                }
-
-                logs.unshift({ date: dateStr, isoDate: isoDate, time: timeStr, timestamp: timestamp, id: cleanId, name: normalizedStudentName, course: capitalizeFirstLetter(student.course), mode: currentMode });
-                localStorage.setItem(logKey, JSON.stringify(logs));
-                updateScreen(`${currentMode} SUCCESS`, `${normalizedStudentName} (${capitalizeFirstLetter(student.course)})`, currentMode === 'LOG IN' ? "#00ffcc" : "#ffcc00");
-                if (!viewingFilterDate) renderLogs();
-            } else updateScreen("ACCESS DENIED", `ID ${cleanId} NOT REGISTERED`, "#ff3333");
-        }
-
-        function handleManualScan(e) { if (e.key === 'Enter') submitManualScan(); }
-        function submitManualScan() {
-            const inputField = document.getElementById('manualScanId');
-            processAttendance(inputField.value);
-            inputField.value = '';
-        }
-
-        function populateMemberDropdown() {
-            const dbKey = getStudentDBKey();
-            const db = JSON.parse(localStorage.getItem(dbKey)) || {};
-            const members = Object.keys(db).map(id => ({ id: id, name: formatStandardName(db[id].name), course: capitalizeFirstLetter(db[id].course) })).sort((a, b) => a.name.localeCompare(b.name));
-
-            memberSelectDropdown.innerHTML = '<option value="" style="color: #000;">-- Type or scroll name --</option>';
-            members.forEach(m => {
-                const option = document.createElement('option');
-                option.value = m.id;
-                option.textContent = `${m.name} (${m.id} - ${m.course})`;
-                option.style.color = "#000";
-                memberSelectDropdown.appendChild(option);
-            });
-        }
-
-        function handleDropdownSelect(idValue) {}
-
-        function submitSelectedMember() {
-            const selectedId = memberSelectDropdown.value;
-            if (!selectedId) return updateScreen("SELECTION ERROR", "PLEASE SELECT A MEMBER", "#ff3333");
-            processAttendance(selectedId);
-            memberSelectDropdown.value = "";
-        }
-
-        function renderMembersList() {
-            const dbKey = getStudentDBKey();
-            const db = JSON.parse(localStorage.getItem(dbKey)) || {};
-            const members = Object.keys(db).map(id => ({ id: id, name: formatStandardName(db[id].name), course: capitalizeFirstLetter(db[id].course) })).sort((a, b) => a.name.localeCompare(b.name));
-
-            membersTableBody.innerHTML = '';
-            if (members.length === 0) return membersTableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#aaa;">No registered members found.</td></tr>`;
-
-            members.forEach((m, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td style="text-align: center;">${index + 1}</td><td>${m.name}</td><td>${m.id}</td><td>${m.course}</td>`;
-                membersTableBody.appendChild(row);
-            });
-        }
-
-        function startCameraScanner() {
-            if (typeof Html5QrcodeScanner === 'undefined') return updateScreen("SCANNER ERROR", "LIBRARY FAILED TO LOAD", "#ff3333");
-            if (!html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 180 }, facingMode: "environment" }, false);
-                html5QrcodeScanner.render((decodedText) => processAttendance(decodedText), (error) => {});
-                updateScreen("CAMERA ACTIVE", "READY TO SCAN QR/BARCODE", "#00ffcc");
-            }
-        }
-
-        function stopCameraScanner() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear().then(() => {
-                    html5QrcodeScanner = null;
-                    updateScreen("CAMERA STOPPED", "USE MANUAL INPUT OR START CAMERA", "#00ffcc");
-                }).catch(err => {
-                    html5QrcodeScanner = null;
-                    updateScreen("CAMERA STOPPED", "USE MANUAL INPUT OR START CAMERA", "#00ffcc");
-                });
-            }
-        }
-
-        function getLogDateStr(log) {
-            if (log.isoDate) return log.isoDate;
-            if (log.timestamp) return getStandardizedDate(new Date(log.timestamp));
-            let parsed = new Date(log.date);
-            return !isNaN(parsed) ? getStandardizedDate(parsed) : log.date;
-        }
-
-        function renderLogs() {
-            let logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
-            logTableBody.innerHTML = '';
-            
-            const todayStr = getStandardizedDate(new Date());
-            let filteredLogs = [];
-
-            if (viewingFilterDate) {
-                logContainerTitle.textContent = `LOGS FOR: ${viewingFilterDate}`;
-                filteredLogs = logs.filter(log => getLogDateStr(log) === viewingFilterDate);
-            } else {
-                logContainerTitle.textContent = "RECENT ATTENDANCE LOGS (TODAY)";
-                filteredLogs = logs.filter(log => getLogDateStr(log) === todayStr);
-            }
-
-            if (filteredLogs.length === 0) return logTableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#aaa;">No attendance records found for this period.</td></tr>`;
-
-            filteredLogs.slice(0, 15).forEach((log, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td style="text-align: center;">${index + 1}</td>
-                    <td>${log.timestamp ? new Date(log.timestamp).toLocaleDateString() : (log.date || '-')}</td>
-                    <td>${log.time || '-'}</td>
-                    <td>${log.id || '-'}</td>
-                    <td>${formatStandardName(log.name || '-')}</td>
-                    <td>${capitalizeFirstLetter(log.course || '-')}</td>
-                    <td class="${log.mode === 'LOG IN' ? 'tag-login' : 'tag-logout'}"><strong>${log.mode || 'LOG IN'}</strong></td>
-                `;
-                logTableBody.appendChild(row);
-            });
-        }
-
-        function getProcessedAttendanceData() {
-            let logs = JSON.parse(localStorage.getItem(getAttendanceKey())) || [];
-            const todayStr = viewingFilterDate ? viewingFilterDate : getStandardizedDate(new Date());
-            let targetLogs = logs.filter(log => getLogDateStr(log) === todayStr);
-
-            let processedData = {};
-            const studentDB = JSON.parse(localStorage.getItem(getStudentDBKey())) || {};
-
-            Object.keys(studentDB).forEach(id => processedData[id] = { name: formatStandardName(studentDB[id].name), id: id, course: capitalizeFirstLetter(studentDB[id].course || 'N/A'), login: "NO LOG IN", logout: "NO LOG OUT" });
-
-            [...targetLogs].reverse().forEach(log => {
-                let key = log.id;
-                if (!processedData[key]) processedData[key] = { name: formatStandardName(log.name), id: log.id, course: capitalizeFirstLetter(log.course || 'N/A'), login: "NO LOG IN", logout: "NO LOG OUT" };
-                if (log.mode === "LOG IN") processedData[key].login = log.time;
-                else if (log.mode === "LOG OUT") processedData[key].logout = log.time;
-            });
-
-            return processedData;
-        }
-
-        function applyDateFilter() {
-            const inputDate = document.getElementById('filterDateInput').value;
-            if (!inputDate) return;
-            viewingFilterDate = inputDate;
-            renderLogs();
-            closeLogFilterModal();
-        }
-
-        function resetToTodayLogs() {
-            viewingFilterDate = null;
-            document.getElementById('filterDateInput').value = getStandardizedDate(new Date());
-            renderLogs();
-            closeLogFilterModal();
-        }
+        generatePdfBtn.addEventListener('click', () => {
+            const pdf = createPdfObject();
+            pdf.save(`NSTP-CWTS_Documentation_${eventDateInput.value}.pdf`);
+        });
     </script>
 </body>
 </html>

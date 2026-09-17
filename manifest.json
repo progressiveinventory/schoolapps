@@ -1,6 +1,6 @@
 {
-  "name": "Multi-school Apps",
-  "short_name": "QR Scanner",
+  "name": "NSTP WATERMARK",
+  "short_name": "NSTP IMAGE WATERMARKING",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
