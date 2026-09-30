@@ -465,8 +465,13 @@
                 year: 'numeric', month: 'long', day: 'numeric' 
             });
 
-            const logoSize = logoImageObj ? 90 : 0;
+            // Dynamically scale logo width based on target height while preserving aspect ratio
+            const targetLogoHeight = 90;
+            const logoAspect = logoImageObj ? (logoImageObj.naturalWidth / logoImageObj.naturalHeight) : 1;
+            const logoWidth = logoImageObj ? targetLogoHeight * logoAspect : 0;
+            const logoHeight = logoImageObj ? targetLogoHeight : 0;
             const gap = logoImageObj ? 20 : 0;
+
             const text1 = "NSTP-CWTS 2026-2027";
             const text2 = formattedDate;
 
@@ -474,11 +479,11 @@
             const text1Width = ctx.measureText(text1).width;
             const text2Width = ctx.measureText(text2).width;
             const maxTextWidth = Math.max(text1Width, text2Width);
-            const totalBlockWidth = logoSize + gap + maxTextWidth;
+            const totalBlockWidth = logoWidth + gap + maxTextWidth;
 
             let startX = (canvas.width - totalBlockWidth) / 2;
             const bottomMargin = 50; 
-            const centerY = canvas.height - bottomMargin - (logoSize / 2 || 45); 
+            const centerY = canvas.height - bottomMargin - (logoHeight / 2 || 45); 
 
             ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
             ctx.shadowBlur = 6;
@@ -488,8 +493,8 @@
             ctx.textAlign = "left";
 
             if (logoImageObj) {
-                ctx.drawImage(logoImageObj, startX, centerY - (logoSize / 2), logoSize, logoSize);
-                startX += logoSize + gap;
+                ctx.drawImage(logoImageObj, startX, centerY - (logoHeight / 2), logoWidth, logoHeight);
+                startX += logoWidth + gap;
             }
 
             ctx.fillStyle = "#ffffff";
