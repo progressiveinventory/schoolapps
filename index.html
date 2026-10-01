@@ -221,7 +221,8 @@
             z-index: 1000; flex-direction: column; padding: 20px;
             justify-content: center;
         }
-        .crop-container { flex-grow: 1; min-height: 0; margin-bottom: 15px; border-radius: 12px; overflow: hidden; }
+        .crop-container { flex-grow: 1; min-height: 0; margin-bottom: 15px; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #imageToCrop { max-width: 100%; max-height: 100%; display: block; }
         .modal-text { text-align: center; color: var(--neon-pink); margin-bottom: 10px; font-size: 1rem; }
         
         .view-image-container {
@@ -274,7 +275,7 @@
                     <li><strong>4.</strong> Adjust PDF Columns and Rows if needed.</li>
                     <li><strong>5.</strong> If a watermarked image has an error, <strong>click the image directly</strong> or use the DELETE button to remove it.</li>
                     <li><strong>6.</strong> Click <strong>DOWNLOAD PDF</strong> to generate.</li>
-                    <strong>Note:</strong>It would be better to capture it in <strong>LANDSCAPE</strong> mode to avoid cropping.
+                    <strong>Note:</strong> It would be better to capture it in <strong>LANDSCAPE</strong> mode to avoid cropping.
                 </ul>
             </div>
 
@@ -398,6 +399,7 @@
         let finalImages = [];
         let cropper = null;
         let imageToDeleteIndex = null;
+        let activeObjectUrl = null;
 
         // Automatically load logo from local directory
         window.addEventListener('DOMContentLoaded', () => {
@@ -417,8 +419,10 @@
                 imageInput.disabled = false;
                 uploadWrapper.classList.remove('disabled');
                 uploadBtnText.innerText = "SELECT IMAGES";
-                statusArea.innerText = "READY TO UPLOAD IMAGES";
-                statusArea.style.color = "var(--neon-blue)";
+                if (finalImages.length === 0) {
+                    statusArea.innerText = "READY TO UPLOAD IMAGES";
+                    statusArea.style.color = "var(--neon-blue)";
+                }
             } else {
                 imageInput.disabled = true;
                 uploadWrapper.classList.add('disabled');
@@ -433,18 +437,25 @@
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
             
-            fileQueue = files;
-            finalImages = [];
-            previewGrid.innerHTML = '';
-            generatePdfBtn.disabled = true;
-            statusArea.innerText = `PROCESSING 1 OF ${fileQueue.length}...`;
+            const isProcessing = fileQueue.length > 0;
+            fileQueue.push(...files);
             
-            processNextFile();
+            // Reset input so same images can be re-selected if desired
+            imageInput.value = '';
+
+            if (!isProcessing) {
+                processNextFile();
+            }
         });
 
         function processNextFile() {
+            if (activeObjectUrl) {
+                URL.revokeObjectURL(activeObjectUrl);
+                activeObjectUrl = null;
+            }
+
             if (fileQueue.length === 0) {
-                statusArea.innerText = "ALL IMAGES WATERMARKED!";
+                statusArea.innerText = `${finalImages.length} IMAGE(S) WATERMARKED & READY!`;
                 statusArea.style.color = "var(--neon-blue)";
                 if (finalImages.length > 0) {
                     generatePdfBtn.disabled = false;
@@ -452,55 +463,70 @@
                 return;
             }
 
-            const file = fileQueue.shift();
-            const reader = new FileReader();
+            statusArea.innerText = `PROCESSING... (${fileQueue.length} REMAINING)`;
+            statusArea.style.color = "var(--neon-pink)";
 
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    if (img.height > img.width) {
-                        openCropper(img.src);
-                    } else {
-                        applyWatermark(img);
-                    }
-                };
-                img.src = e.target.result;
+            const file = fileQueue.shift();
+            activeObjectUrl = URL.createObjectURL(file);
+
+            const img = new Image();
+            img.onload = () => {
+                if (img.height > img.width) {
+                    openCropper(activeObjectUrl);
+                } else {
+                    applyWatermark(img);
+                }
             };
-            reader.readAsDataURL(file);
+            img.onerror = () => {
+                console.error("Failed to load selected image file.");
+                processNextFile();
+            };
+            img.src = activeObjectUrl;
         }
 
         function openCropper(imageSrc) {
             cropModal.style.display = 'flex';
+            
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+
+            // Wait for image load before initializing cropper to avoid freezes
+            imageToCrop.onload = () => {
+                imageToCrop.onload = null;
+                cropper = new Cropper(imageToCrop, {
+                    aspectRatio: 3 / 2,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    responsive: true,
+                    checkOrientation: false,
+                    guides: true,
+                    center: true,
+                });
+            };
             imageToCrop.src = imageSrc;
-            
-            if (cropper) cropper.destroy();
-            
-            cropper = new Cropper(imageToCrop, {
-                aspectRatio: 3 / 2,
-                viewMode: 2,
-                autoCropArea: 1,
-                guides: true,
-                center: true,
-            });
         }
 
         cropSaveBtn.addEventListener('click', () => {
             if (!cropper) return;
+            
             const croppedCanvas = cropper.getCroppedCanvas({
                 width: 1200,
-                height: 800,
-                imageSmoothingEnabled: true,
-                imageSmoothingQuality: 'high',
+                height: 800
             });
             
-            const croppedImg = new Image();
-            croppedImg.onload = () => {
-                cropModal.style.display = 'none';
+            cropModal.style.display = 'none';
+            if (cropper) {
                 cropper.destroy();
                 cropper = null;
+            }
+
+            const croppedImg = new Image();
+            croppedImg.onload = () => {
                 applyWatermark(croppedImg);
             };
-            croppedImg.src = croppedCanvas.toDataURL('image/jpeg', 0.9);
+            croppedImg.src = croppedCanvas.toDataURL('image/jpeg', 0.85);
         });
 
         // Helper function for aesthetic glassmorphic card boxes in canvas
@@ -721,13 +747,7 @@
             finalImages.push(finalDataUrl);
             
             renderGrid();
-
-            if (fileQueue.length > 0) {
-                statusArea.innerText = `PROCESSING NEXT... (${fileQueue.length} REMAINING)`;
-                processNextFile();
-            } else {
-                processNextFile();
-            }
+            processNextFile();
         }
 
         function renderGrid() {
@@ -741,7 +761,7 @@
                 img.src = imgData;
                 img.className = 'preview-img';
                 img.title = "Click to delete this image";
-                img.onclick = () => openDeleteModal(index); // Direct image click-to-delete
+                img.onclick = () => openDeleteModal(index);
 
                 const actions = document.createElement('div');
                 actions.className = 'card-actions';
@@ -764,6 +784,10 @@
 
                 previewGrid.appendChild(card);
             });
+
+            if (finalImages.length > 0) {
+                generatePdfBtn.disabled = false;
+            }
         }
 
         function openViewModal(imgSrc) {
