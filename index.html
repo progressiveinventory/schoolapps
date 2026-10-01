@@ -106,6 +106,7 @@
             color: white; outline: none; font-size: 0.9rem; text-align: center;
         }
         .glass-input:focus { border-color: var(--neon-blue); }
+        .glass-input option { background: #111; color: #fff; } /* Fix dropdown visibility */
         input[type="date"], input[type="file"] { text-align: left; }
 
         .file-upload-wrapper {
@@ -145,7 +146,8 @@
 
         #status-area { text-align: center; margin: 12px 0; font-size: 0.85rem; color: var(--neon-pink); }
         
-        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        /* Flexbox handles visual centering for odd numbered images in preview automatically */
+        .preview-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 15px; }
         .preview-card {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid var(--glass-border);
@@ -153,6 +155,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            width: calc(50% - 6px); /* 2 columns with 12px gap */
         }
         .preview-img { width: 100%; height: 110px; object-fit: cover; display: block; }
         .card-actions {
@@ -244,7 +247,17 @@
                 </div>
 
                 <div class="input-group">
-                    <label>2. Upload Photos</label>
+                    <label for="watermarkStyle">2. Select Watermark Style</label>
+                    <select id="watermarkStyle" class="glass-input">
+                        <option value="default">Style 1: Centered Bottom (Classic)</option>
+                        <option value="minimalist">Style 2: Minimalist Corner</option>
+                        <option value="diagonal">Style 3: Large Diagonal</option>
+                        <option value="topbar">Style 4: Dark Top Banner</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>3. Upload Photos</label>
                     <div class="file-upload-wrapper disabled" id="uploadWrapper">
                         <input type="file" id="imageInput" multiple accept="image/*" disabled>
                         <div class="upload-btn" id="uploadBtnText">Set Date Above to Unlock</div>
@@ -252,7 +265,7 @@
                 </div>
 
                 <div class="input-group">
-                    <label>3. PDF Layout</label>
+                    <label>4. PDF Layout</label>
                     <div class="grid-inputs">
                         <input type="number" id="pdfCols" class="glass-input" placeholder="Cols" value="2" min="1">
                         <span style="color: #666;">x</span>
@@ -307,6 +320,7 @@
 
     <script>
         const eventDateInput = document.getElementById('eventDate');
+        const watermarkStyleInput = document.getElementById('watermarkStyle');
         const imageInput = document.getElementById('imageInput');
         const uploadWrapper = document.getElementById('uploadWrapper');
         const uploadBtnText = document.getElementById('uploadBtnText');
@@ -458,50 +472,106 @@
             const offsetY = (canvas.height - drawHeight) / 2;
 
             ctx.drawImage(sourceImg, offsetX, offsetY, drawWidth, drawHeight);
-            ctx.globalAlpha = 0.75;
 
+            // Watermarking Variables
             const rawDate = new Date(eventDateInput.value);
             const formattedDate = rawDate.toLocaleDateString('en-US', { 
                 year: 'numeric', month: 'long', day: 'numeric' 
             });
-
-            // Dynamically scale logo width based on target height while preserving aspect ratio
-            const targetLogoHeight = 90;
-            const logoAspect = logoImageObj ? (logoImageObj.naturalWidth / logoImageObj.naturalHeight) : 1;
-            const logoWidth = logoImageObj ? targetLogoHeight * logoAspect : 0;
-            const logoHeight = logoImageObj ? targetLogoHeight : 0;
-            const gap = logoImageObj ? 20 : 0;
-
             const text1 = "NSTP-CWTS 2026-2027";
-            const text2 = formattedDate;
+            const selectedStyle = watermarkStyleInput.value;
 
-            ctx.font = "bold 34px Poppins, sans-serif";
-            const text1Width = ctx.measureText(text1).width;
-            const text2Width = ctx.measureText(text2).width;
-            const maxTextWidth = Math.max(text1Width, text2Width);
-            const totalBlockWidth = logoWidth + gap + maxTextWidth;
+            // Apply different styles based on dropdown selection
+            if (selectedStyle === 'default') {
+                ctx.globalAlpha = 0.75;
+                const targetLogoHeight = 90;
+                const logoAspect = logoImageObj ? (logoImageObj.naturalWidth / logoImageObj.naturalHeight) : 1;
+                const logoWidth = logoImageObj ? targetLogoHeight * logoAspect : 0;
+                const gap = logoImageObj ? 20 : 0;
+                
+                ctx.font = "bold 34px Poppins, sans-serif";
+                const maxTextWidth = Math.max(ctx.measureText(text1).width, ctx.measureText(formattedDate).width);
+                const totalBlockWidth = logoWidth + gap + maxTextWidth;
 
-            let startX = (canvas.width - totalBlockWidth) / 2;
-            const bottomMargin = 50; 
-            const centerY = canvas.height - bottomMargin - (logoHeight / 2 || 45); 
+                let startX = (canvas.width - totalBlockWidth) / 2;
+                const bottomMargin = 50; 
+                const centerY = canvas.height - bottomMargin - (targetLogoHeight / 2 || 45); 
 
-            ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
-            ctx.shadowBlur = 6;
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
-            ctx.textBaseline = "middle";
-            ctx.textAlign = "left";
+                ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
+                ctx.shadowBlur = 6;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+                ctx.textBaseline = "middle";
+                ctx.textAlign = "left";
 
-            if (logoImageObj) {
-                ctx.drawImage(logoImageObj, startX, centerY - (logoHeight / 2), logoWidth, logoHeight);
-                startX += logoWidth + gap;
+                if (logoImageObj) {
+                    ctx.drawImage(logoImageObj, startX, centerY - (targetLogoHeight / 2), logoWidth, targetLogoHeight);
+                    startX += logoWidth + gap;
+                }
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText(text1, startX, centerY - 20);
+                ctx.fillStyle = "#00f3ff";
+                ctx.fillText(formattedDate, startX, centerY + 24);
+
+            } else if (selectedStyle === 'minimalist') {
+                ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+                ctx.shadowBlur = 8;
+                ctx.textAlign = "right";
+                ctx.textBaseline = "bottom";
+                
+                ctx.font = "bold 38px Poppins, sans-serif";
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText(formattedDate, canvas.width - 30, canvas.height - 30);
+                
+                ctx.font = "bold 26px Poppins, sans-serif";
+                ctx.fillStyle = "#00f3ff";
+                ctx.fillText(text1, canvas.width - 30, canvas.height - 75);
+
+            } else if (selectedStyle === 'diagonal') {
+                ctx.save();
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(-Math.PI / 6); // Slanted
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                
+                ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+                ctx.shadowBlur = 10;
+                
+                ctx.font = "bold 100px Poppins, sans-serif";
+                ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+                ctx.fillText(text1, 0, -40);
+                
+                ctx.font = "bold 60px Poppins, sans-serif";
+                ctx.fillStyle = "rgba(0, 243, 255, 0.4)";
+                ctx.fillText(formattedDate, 0, 60);
+                ctx.restore();
+
+            } else if (selectedStyle === 'topbar') {
+                // Dark background bar
+                ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+                ctx.fillRect(0, 0, canvas.width, 110);
+                
+                ctx.font = "bold 36px Poppins, sans-serif";
+                ctx.textBaseline = "middle";
+                let startX = 30;
+
+                if (logoImageObj) {
+                    const targetLogoHeight = 70;
+                    const logoAspect = logoImageObj.naturalWidth / logoImageObj.naturalHeight;
+                    const logoWidth = targetLogoHeight * logoAspect;
+                    ctx.drawImage(logoImageObj, startX, 20, logoWidth, targetLogoHeight);
+                    startX += logoWidth + 20;
+                }
+
+                ctx.textAlign = "left";
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText(text1, startX, 55);
+
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#00f3ff";
+                ctx.fillText(formattedDate, canvas.width - 30, 55);
             }
-
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText(text1, startX, centerY - 20);
-            
-            ctx.fillStyle = "#00f3ff";
-            ctx.fillText(text2, startX, centerY + 24);
 
             ctx.globalAlpha = 1.0;
 
@@ -590,68 +660,57 @@
             imageToDeleteIndex = null;
         });
 
-        // Optimized PDF layout algorithm for proper grid fitting
+        // REWRITTEN ALGORITHM TO PROPERLY CENTER EXCESS IMAGES IN PDF ROWS
         function createPdfObject() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
             
             const cols = Math.max(1, parseInt(pdfCols.value) || 2);
             const rows = Math.max(1, parseInt(pdfRows.value) || 3);
-            
-            const marginX = 8;
-            const marginY = 8;
             const gap = (rows > 4 || cols > 3) ? 3 : 4; 
             
             const pageWidth = 210;
             const pageHeight = 297;
-            
+            const marginX = 8, marginY = 8;
             const availableWidth = pageWidth - (marginX * 2);
             const availableHeight = pageHeight - (marginY * 2);
-            
             const aspectRatio = 1.5; // 3:2 landscape ratio
 
-            // Calculate max cell width bounded by available page width & height
             const maxWByWidth = (availableWidth - (gap * (cols - 1))) / cols;
             const maxWByHeight = aspectRatio * ((availableHeight - (gap * (rows - 1))) / rows);
-
             const cellWidth = Math.min(maxWByWidth, maxWByHeight);
             const cellHeight = cellWidth / aspectRatio;
 
-            const actualGridWidth = (cellWidth * cols) + (gap * (cols - 1));
             const actualGridHeight = (cellHeight * rows) + (gap * (rows - 1));
-
-            // Center grid precisely on the A4 page
-            const startX = (pageWidth - actualGridWidth) / 2;
             const startY = (pageHeight - actualGridHeight) / 2;
 
-            let currentX = startX;
-            let currentY = startY;
-            let colIdx = 0;
-            let rowIdx = 0;
+            const itemsPerPage = cols * rows;
 
-            finalImages.forEach((imgData, index) => {
-                if (index > 0 && colIdx === 0 && rowIdx === 0) {
-                    pdf.addPage();
-                }
-
-                pdf.addImage(imgData, 'JPEG', currentX, currentY, cellWidth, cellHeight);
+            // Process page by page
+            for (let i = 0; i < finalImages.length; i += itemsPerPage) {
+                if (i > 0) pdf.addPage();
                 
-                colIdx++;
-                if (colIdx >= cols) {
-                    colIdx = 0;
-                    rowIdx++;
-                    currentX = startX;
-                    currentY += cellHeight + gap;
-                } else {
-                    currentX += cellWidth + gap;
-                }
+                const pageImages = finalImages.slice(i, i + itemsPerPage);
 
-                if (rowIdx >= rows) {
-                    rowIdx = 0;
-                    currentX = startX;
-                    currentY = startY;
+                // Process row by row on the current page
+                for (let r = 0; r < rows; r++) {
+                    const rowStartIndex = r * cols;
+                    if (rowStartIndex >= pageImages.length) break;
+
+                    const rowImages = pageImages.slice(rowStartIndex, rowStartIndex + cols);
+                    const itemsInRow = rowImages.length; // Will be less than 'cols' if it's the excess orphan row
+
+                    // Calculate X dynamically to always CENTER the content of the current row
+                    const rowContentWidth = (itemsInRow * cellWidth) + (gap * (itemsInRow - 1));
+                    const rowStartX = (pageWidth - rowContentWidth) / 2;
+                    const currentY = startY + (r * (cellHeight + gap));
+
+                    for (let c = 0; c < itemsInRow; c++) {
+                        const currentX = rowStartX + (c * (cellWidth + gap));
+                        pdf.addImage(rowImages[c], 'JPEG', currentX, currentY, cellWidth, cellHeight);
+                    }
                 }
-            });
+            }
 
             return pdf;
         }
