@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <!-- Typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- External Libraries -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
@@ -84,11 +84,23 @@
             border-radius: 24px;
             padding: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            margin-bottom: 15px;
         }
 
         header { text-align: center; margin-bottom: 20px; }
+        .dashboard-logo { width: 70px; height: auto; margin-bottom: 10px; display: inline-block; }
         h1 { font-size: 1.4rem; letter-spacing: 1px; color: #fff; }
         p.subtitle { font-size: 0.75rem; color: var(--neon-blue); text-transform: uppercase; margin-top: 2px; }
+
+        .instructions-list {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: #ddd;
+            padding-left: 15px;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+        .instructions-list strong { font-weight: 700; color: var(--neon-blue); }
 
         .input-group { margin-bottom: 15px; }
         .input-group label {
@@ -97,8 +109,11 @@
         }
 
         .grid-inputs {
-            display: flex; gap: 10px; align-items: center; margin-bottom: 15px;
+            display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;
         }
+
+        .grid-col { flex: 1; text-align: center; }
+        .grid-col label { font-size: 0.65rem; color: #888; text-transform: none; margin-bottom: 4px; display: block; }
 
         .glass-input {
             width: 100%; padding: 12px 15px; border-radius: 12px;
@@ -139,6 +154,7 @@
         .btn-default {
             margin: 0; padding: 12px 15px; width: auto; font-size: 0.75rem;
             background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.3);
+            margin-bottom: 2px;
         }
         .btn:disabled {
             background: #222; color: #555; border-color: #333; box-shadow: none; pointer-events: none;
@@ -156,7 +172,11 @@
             flex-direction: column;
             width: calc(50% - 6px);
         }
-        .preview-img { width: 100%; height: 110px; object-fit: cover; display: block; }
+        .preview-img { 
+            width: 100%; height: 110px; object-fit: cover; display: block; 
+            cursor: pointer; transition: opacity 0.2s;
+        }
+        .preview-img:hover { opacity: 0.8; }
         .card-actions {
             display: flex;
             padding: 6px;
@@ -234,12 +254,31 @@
 
     <div id="mobile-container">
         <div class="content-wrapper">
+            
+            <!-- Dashboard Header Panel -->
             <div class="glass-panel">
                 <header>
+                    <img src="NSTP.png" alt="NSTP Logo" class="dashboard-logo">
                     <h1>NSTP-CWTS 2026-2027</h1>
                     <p class="subtitle">Philippine Engineering & Agro-Industrial College, Inc.</p>
                 </header>
+            </div>
 
+            <!-- Instructions Panel -->
+            <div class="glass-panel" style="background: rgba(0, 243, 255, 0.03);">
+                <h2 style="font-size: 0.85rem; color: var(--neon-blue); text-transform: uppercase;">Instructions</h2>
+                <ul class="instructions-list">
+                    <li><strong>1.</strong> Set the Date to unlock the photo uploader.</li>
+                    <li><strong>2.</strong> Choose a Watermark Style.</li>
+                    <li><strong>3.</strong> Upload images. Portrait photos will prompt a crop to landscape.</li>
+                    <li><strong>4.</strong> Adjust PDF Columns and Rows if needed.</li>
+                    <li><strong>5.</strong> If a watermarked image has an error, <strong>click the image directly</strong> or use the DELETE button to remove it.</li>
+                    <li><strong>6.</strong> Click <strong>DOWNLOAD PDF</strong> to generate.</li>
+                </ul>
+            </div>
+
+            <!-- Main Application Panel -->
+            <div class="glass-panel">
                 <div class="input-group">
                     <label for="eventDate">1. Set Date First (Required)</label>
                     <input type="date" id="eventDate" class="glass-input">
@@ -250,8 +289,7 @@
                     <select id="watermarkStyle" class="glass-input">
                         <option value="default">Style 1: Centered Glass Pill (Classic)</option>
                         <option value="minimalist">Style 2: Minimalist Corner Badge</option>
-                        <option value="diagonal">Style 3: Large Diagonal Stamp</option>
-                        <option value="topbar">Style 4: Dark Top Glass Banner</option>
+                        <option value="topbar">Style 3: Dark Top Glass Banner</option>
                     </select>
                 </div>
 
@@ -266,9 +304,15 @@
                 <div class="input-group">
                     <label>4. PDF Layout</label>
                     <div class="grid-inputs">
-                        <input type="number" id="pdfCols" class="glass-input" placeholder="Cols" value="2" min="1">
-                        <span style="color: #666;">x</span>
-                        <input type="number" id="pdfRows" class="glass-input" placeholder="Rows" value="3" min="1">
+                        <div class="grid-col">
+                            <label for="pdfCols">Columns</label>
+                            <input type="number" id="pdfCols" class="glass-input" value="2" min="1">
+                        </div>
+                        <span style="color: #666; padding-bottom: 12px;">x</span>
+                        <div class="grid-col">
+                            <label for="pdfRows">Rows</label>
+                            <input type="number" id="pdfRows" class="glass-input" value="3" min="1">
+                        </div>
                         <button id="defaultGridBtn" class="btn btn-default">DEFAULT</button>
                     </div>
                 </div>
@@ -610,53 +654,6 @@
                 ctx.fillStyle = "#00f3ff";
                 ctx.fillText(formattedDate, currentX, centerY + 13);
 
-            } else if (selectedStyle === 'diagonal') {
-                // --- STYLE 3: Large Diagonal Stamp with Logo ---
-                ctx.save();
-                ctx.translate(canvas.width / 2, canvas.height / 2);
-                ctx.rotate(-Math.PI / 7.5); // ~24 degree slant
-                
-                const logoHeight = logoImageObj ? 85 : 0;
-                const logoAspect = logoImageObj ? (logoImageObj.naturalWidth / logoImageObj.naturalHeight) : 1;
-                const logoWidth = logoHeight * logoAspect;
-                
-                ctx.font = "bold 52px 'Poppins', sans-serif";
-                const w1 = ctx.measureText(text1).width;
-                ctx.font = "bold 36px 'Poppins', sans-serif";
-                const w2 = ctx.measureText(formattedDate).width;
-                const maxW = Math.max(w1, w2, logoWidth);
-                
-                const bannerWidth = maxW + 110;
-                const bannerHeight = 220;
-                
-                // Slanted dark translucent banner
-                drawGlassCard(ctx, -bannerWidth / 2, -bannerHeight / 2, bannerWidth, bannerHeight, 28, "rgba(5, 7, 18, 0.55)", "rgba(0, 243, 255, 0.3)", "rgba(0, 0, 0, 0.4)");
-                
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                
-                let startY = -bannerHeight / 2 + 25;
-                
-                if (logoImageObj) {
-                    ctx.drawImage(logoImageObj, -logoWidth / 2, startY, logoWidth, logoHeight);
-                    startY += logoHeight + 25;
-                } else {
-                    startY += 40;
-                }
-                
-                ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-                ctx.shadowBlur = 10;
-                
-                ctx.font = "bold 48px 'Poppins', sans-serif";
-                ctx.fillStyle = "#ffffff";
-                ctx.fillText(text1, 0, startY);
-                
-                ctx.font = "bold 34px 'Poppins', sans-serif";
-                ctx.fillStyle = "#00f3ff";
-                ctx.fillText(formattedDate, 0, startY + 48);
-                
-                ctx.restore();
-
             } else if (selectedStyle === 'topbar') {
                 // --- STYLE 4: Dark Top Glass Banner ---
                 const bannerHeight = 100;
@@ -741,6 +738,8 @@
                 const img = document.createElement('img');
                 img.src = imgData;
                 img.className = 'preview-img';
+                img.title = "Click to delete this image";
+                img.onclick = () => openDeleteModal(index); // Direct image click-to-delete
 
                 const actions = document.createElement('div');
                 actions.className = 'card-actions';
