@@ -106,7 +106,7 @@
             color: white; outline: none; font-size: 0.9rem; text-align: center;
         }
         .glass-input:focus { border-color: var(--neon-blue); }
-        .glass-input option { background: #111; color: #fff; } /* Fix dropdown visibility */
+        .glass-input option { background: #111; color: #fff; }
         input[type="date"], input[type="file"] { text-align: left; }
 
         .file-upload-wrapper {
@@ -146,7 +146,6 @@
 
         #status-area { text-align: center; margin: 12px 0; font-size: 0.85rem; color: var(--neon-pink); }
         
-        /* Flexbox handles visual centering for odd numbered images in preview automatically */
         .preview-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 15px; }
         .preview-card {
             background: rgba(0, 0, 0, 0.4);
@@ -155,7 +154,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            width: calc(50% - 6px); /* 2 columns with 12px gap */
+            width: calc(50% - 6px);
         }
         .preview-img { width: 100%; height: 110px; object-fit: cover; display: block; }
         .card-actions {
@@ -249,10 +248,10 @@
                 <div class="input-group">
                     <label for="watermarkStyle">2. Select Watermark Style</label>
                     <select id="watermarkStyle" class="glass-input">
-                        <option value="default">Style 1: Centered Bottom (Classic)</option>
-                        <option value="minimalist">Style 2: Minimalist Corner</option>
-                        <option value="diagonal">Style 3: Large Diagonal</option>
-                        <option value="topbar">Style 4: Dark Top Banner</option>
+                        <option value="default">Style 1: Centered Glass Pill (Classic)</option>
+                        <option value="minimalist">Style 2: Minimalist Corner Badge</option>
+                        <option value="diagonal">Style 3: Large Diagonal Stamp</option>
+                        <option value="topbar">Style 4: Dark Top Glass Banner</option>
                     </select>
                 </div>
 
@@ -458,6 +457,29 @@
             croppedImg.src = croppedCanvas.toDataURL('image/jpeg', 0.9);
         });
 
+        // Helper function for aesthetic glassmorphic card boxes in canvas
+        function drawGlassCard(ctx, x, y, width, height, radius, fillStyle, strokeStyle, shadowColor) {
+            ctx.save();
+            if (shadowColor) {
+                ctx.shadowColor = shadowColor;
+                ctx.shadowBlur = 12;
+            }
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(x, y, width, height, radius);
+            } else {
+                ctx.rect(x, y, width, height);
+            }
+            ctx.fillStyle = fillStyle;
+            ctx.fill();
+            if (strokeStyle) {
+                ctx.strokeStyle = strokeStyle;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
         function applyWatermark(sourceImg) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -473,7 +495,7 @@
 
             ctx.drawImage(sourceImg, offsetX, offsetY, drawWidth, drawHeight);
 
-            // Watermarking Variables
+            // Watermarking Data
             const rawDate = new Date(eventDateInput.value);
             const formattedDate = rawDate.toLocaleDateString('en-US', { 
                 year: 'numeric', month: 'long', day: 'numeric' 
@@ -481,96 +503,217 @@
             const text1 = "NSTP-CWTS 2026-2027";
             const selectedStyle = watermarkStyleInput.value;
 
-            // Apply different styles based on dropdown selection
+            // =========================================================================
+            // AESTHETIC WATERMARK STYLES (LOGO INCLUDED IN ALL)
+            // =========================================================================
+
             if (selectedStyle === 'default') {
-                ctx.globalAlpha = 0.75;
-                const targetLogoHeight = 90;
+                // --- STYLE 1: Centered Glass Pill (Classic) ---
+                const logoHeight = logoImageObj ? 70 : 0;
                 const logoAspect = logoImageObj ? (logoImageObj.naturalWidth / logoImageObj.naturalHeight) : 1;
-                const logoWidth = logoImageObj ? targetLogoHeight * logoAspect : 0;
-                const gap = logoImageObj ? 20 : 0;
+                const logoWidth = logoHeight * logoAspect;
                 
-                ctx.font = "bold 34px Poppins, sans-serif";
-                const maxTextWidth = Math.max(ctx.measureText(text1).width, ctx.measureText(formattedDate).width);
-                const totalBlockWidth = logoWidth + gap + maxTextWidth;
-
-                let startX = (canvas.width - totalBlockWidth) / 2;
-                const bottomMargin = 50; 
-                const centerY = canvas.height - bottomMargin - (targetLogoHeight / 2 || 45); 
-
-                ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
-                ctx.shadowBlur = 6;
-                ctx.shadowOffsetX = 2;
-                ctx.shadowOffsetY = 2;
-                ctx.textBaseline = "middle";
-                ctx.textAlign = "left";
-
+                ctx.font = "bold 26px 'Poppins', sans-serif";
+                const w1 = ctx.measureText(text1).width;
+                ctx.font = "bold 20px 'Poppins', sans-serif";
+                const w2 = ctx.measureText(formattedDate).width;
+                const maxTextWidth = Math.max(w1, w2);
+                
+                const gap = logoImageObj ? 20 : 0;
+                const paddingX = 32;
+                const paddingY = 16;
+                
+                const contentWidth = logoWidth + gap + maxTextWidth;
+                const cardWidth = contentWidth + (paddingX * 2);
+                const cardHeight = Math.max(logoHeight, 60) + (paddingY * 2);
+                
+                const cardX = (canvas.width - cardWidth) / 2;
+                const cardY = canvas.height - cardHeight - 40;
+                
+                // Draw Glass Capsule Container
+                drawGlassCard(ctx, cardX, cardY, cardWidth, cardHeight, cardHeight / 2, "rgba(8, 10, 20, 0.78)", "rgba(0, 243, 255, 0.4)", "rgba(0, 243, 255, 0.2)");
+                
+                let currentX = cardX + paddingX;
+                const centerY = cardY + (cardHeight / 2);
+                
                 if (logoImageObj) {
-                    ctx.drawImage(logoImageObj, startX, centerY - (targetLogoHeight / 2), logoWidth, targetLogoHeight);
-                    startX += logoWidth + gap;
+                    ctx.drawImage(logoImageObj, currentX, centerY - (logoHeight / 2), logoWidth, logoHeight);
+                    currentX += logoWidth + gap;
                 }
-
+                
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                ctx.shadowColor = "rgba(0,0,0,0.85)";
+                ctx.shadowBlur = 6;
+                
+                ctx.font = "bold 26px 'Poppins', sans-serif";
                 ctx.fillStyle = "#ffffff";
-                ctx.fillText(text1, startX, centerY - 20);
+                ctx.fillText(text1, currentX, centerY - 14);
+                
+                ctx.font = "bold 20px 'Poppins', sans-serif";
                 ctx.fillStyle = "#00f3ff";
-                ctx.fillText(formattedDate, startX, centerY + 24);
+                ctx.fillText(formattedDate, currentX, centerY + 16);
 
             } else if (selectedStyle === 'minimalist') {
-                ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-                ctx.shadowBlur = 8;
-                ctx.textAlign = "right";
-                ctx.textBaseline = "bottom";
+                // --- STYLE 2: Minimalist Corner Badge (Bottom-Right) ---
+                const logoHeight = logoImageObj ? 52 : 0;
+                const logoAspect = logoImageObj ? (logoImageObj.naturalWidth / logoImageObj.naturalHeight) : 1;
+                const logoWidth = logoHeight * logoAspect;
                 
-                ctx.font = "bold 38px Poppins, sans-serif";
-                ctx.fillStyle = "#ffffff";
-                ctx.fillText(formattedDate, canvas.width - 30, canvas.height - 30);
+                ctx.font = "bold 22px 'Poppins', sans-serif";
+                const w1 = ctx.measureText(text1).width;
+                ctx.font = "bold 17px 'Poppins', sans-serif";
+                const w2 = ctx.measureText(formattedDate).width;
+                const maxTextWidth = Math.max(w1, w2);
                 
-                ctx.font = "bold 26px Poppins, sans-serif";
+                const gap = logoImageObj ? 16 : 0;
+                const paddingX = 22;
+                const paddingY = 14;
+                
+                const cardWidth = logoWidth + gap + maxTextWidth + (paddingX * 2);
+                const cardHeight = Math.max(logoHeight, 48) + (paddingY * 2);
+                
+                const cardX = canvas.width - cardWidth - 30;
+                const cardY = canvas.height - cardHeight - 30;
+                
+                // Draw sleek glass card
+                drawGlassCard(ctx, cardX, cardY, cardWidth, cardHeight, 18, "rgba(10, 12, 24, 0.82)", "rgba(255, 255, 255, 0.2)", "rgba(0, 0, 0, 0.6)");
+                
+                // Accent neon line on left of card
                 ctx.fillStyle = "#00f3ff";
-                ctx.fillText(text1, canvas.width - 30, canvas.height - 75);
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                    ctx.roundRect(cardX, cardY + 10, 4, cardHeight - 20, 2);
+                } else {
+                    ctx.rect(cardX, cardY + 10, 4, cardHeight - 20);
+                }
+                ctx.fill();
+                
+                let currentX = cardX + paddingX + 4;
+                const centerY = cardY + (cardHeight / 2);
+                
+                if (logoImageObj) {
+                    ctx.drawImage(logoImageObj, currentX, centerY - (logoHeight / 2), logoWidth, logoHeight);
+                    currentX += logoWidth + gap;
+                }
+                
+                ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                ctx.shadowColor = "rgba(0,0,0,0.85)";
+                ctx.shadowBlur = 4;
+                
+                ctx.font = "bold 22px 'Poppins', sans-serif";
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText(text1, currentX, centerY - 12);
+                
+                ctx.font = "bold 17px 'Poppins', sans-serif";
+                ctx.fillStyle = "#00f3ff";
+                ctx.fillText(formattedDate, currentX, centerY + 13);
 
             } else if (selectedStyle === 'diagonal') {
+                // --- STYLE 3: Large Diagonal Stamp with Logo ---
                 ctx.save();
                 ctx.translate(canvas.width / 2, canvas.height / 2);
-                ctx.rotate(-Math.PI / 6); // Slanted
+                ctx.rotate(-Math.PI / 7.5); // ~24 degree slant
+                
+                const logoHeight = logoImageObj ? 85 : 0;
+                const logoAspect = logoImageObj ? (logoImageObj.naturalWidth / logoImageObj.naturalHeight) : 1;
+                const logoWidth = logoHeight * logoAspect;
+                
+                ctx.font = "bold 52px 'Poppins', sans-serif";
+                const w1 = ctx.measureText(text1).width;
+                ctx.font = "bold 36px 'Poppins', sans-serif";
+                const w2 = ctx.measureText(formattedDate).width;
+                const maxW = Math.max(w1, w2, logoWidth);
+                
+                const bannerWidth = maxW + 110;
+                const bannerHeight = 220;
+                
+                // Slanted dark translucent banner
+                drawGlassCard(ctx, -bannerWidth / 2, -bannerHeight / 2, bannerWidth, bannerHeight, 28, "rgba(5, 7, 18, 0.55)", "rgba(0, 243, 255, 0.3)", "rgba(0, 0, 0, 0.4)");
+                
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 
-                ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+                let startY = -bannerHeight / 2 + 25;
+                
+                if (logoImageObj) {
+                    ctx.drawImage(logoImageObj, -logoWidth / 2, startY, logoWidth, logoHeight);
+                    startY += logoHeight + 25;
+                } else {
+                    startY += 40;
+                }
+                
+                ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
                 ctx.shadowBlur = 10;
                 
-                ctx.font = "bold 100px Poppins, sans-serif";
-                ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-                ctx.fillText(text1, 0, -40);
+                ctx.font = "bold 48px 'Poppins', sans-serif";
+                ctx.fillStyle = "#ffffff";
+                ctx.fillText(text1, 0, startY);
                 
-                ctx.font = "bold 60px Poppins, sans-serif";
-                ctx.fillStyle = "rgba(0, 243, 255, 0.4)";
-                ctx.fillText(formattedDate, 0, 60);
+                ctx.font = "bold 34px 'Poppins', sans-serif";
+                ctx.fillStyle = "#00f3ff";
+                ctx.fillText(formattedDate, 0, startY + 48);
+                
                 ctx.restore();
 
             } else if (selectedStyle === 'topbar') {
-                // Dark background bar
-                ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
-                ctx.fillRect(0, 0, canvas.width, 110);
+                // --- STYLE 4: Dark Top Glass Banner ---
+                const bannerHeight = 100;
                 
-                ctx.font = "bold 36px Poppins, sans-serif";
-                ctx.textBaseline = "middle";
-                let startX = 30;
-
+                // Dark translucent header gradient
+                const grad = ctx.createLinearGradient(0, 0, 0, bannerHeight);
+                grad.addColorStop(0, "rgba(6, 8, 18, 0.92)");
+                grad.addColorStop(1, "rgba(10, 12, 26, 0.78)");
+                
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, canvas.width, bannerHeight);
+                
+                // Glowing cyan bottom accent line
+                ctx.fillStyle = "#00f3ff";
+                ctx.shadowColor = "#00f3ff";
+                ctx.shadowBlur = 10;
+                ctx.fillRect(0, bannerHeight - 3, canvas.width, 3);
+                ctx.shadowBlur = 0;
+                
+                const logoHeight = logoImageObj ? 65 : 0;
+                const logoAspect = logoImageObj ? (logoImageObj.naturalWidth / logoImageObj.naturalHeight) : 1;
+                const logoWidth = logoHeight * logoAspect;
+                
+                let startX = 35;
+                const centerY = bannerHeight / 2;
+                
                 if (logoImageObj) {
-                    const targetLogoHeight = 70;
-                    const logoAspect = logoImageObj.naturalWidth / logoImageObj.naturalHeight;
-                    const logoWidth = targetLogoHeight * logoAspect;
-                    ctx.drawImage(logoImageObj, startX, 20, logoWidth, targetLogoHeight);
+                    ctx.drawImage(logoImageObj, startX, centerY - (logoHeight / 2), logoWidth, logoHeight);
                     startX += logoWidth + 20;
                 }
-
+                
                 ctx.textAlign = "left";
+                ctx.textBaseline = "middle";
+                ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
+                ctx.shadowBlur = 4;
+                
+                ctx.font = "bold 28px 'Poppins', sans-serif";
                 ctx.fillStyle = "#ffffff";
-                ctx.fillText(text1, startX, 55);
-
-                ctx.textAlign = "right";
+                ctx.fillText(text1, startX, centerY - 12);
+                
+                ctx.font = "bold 15px 'Poppins', sans-serif";
+                ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+                ctx.fillText("PEACI - NSTP CWTS DOCUMENTATION", startX, centerY + 16);
+                
+                // Date tag on top right
+                ctx.font = "bold 19px 'Poppins', sans-serif";
+                const dateWidth = ctx.measureText(formattedDate).width;
+                const pillW = dateWidth + 30;
+                const pillH = 42;
+                const pillX = canvas.width - pillW - 35;
+                const pillY = centerY - (pillH / 2);
+                
+                drawGlassCard(ctx, pillX, pillY, pillW, pillH, 12, "rgba(0, 243, 255, 0.12)", "rgba(0, 243, 255, 0.5)", null);
+                
+                ctx.textAlign = "center";
                 ctx.fillStyle = "#00f3ff";
-                ctx.fillText(formattedDate, canvas.width - 30, 55);
+                ctx.fillText(formattedDate, pillX + (pillW / 2), centerY);
             }
 
             ctx.globalAlpha = 1.0;
@@ -660,7 +803,6 @@
             imageToDeleteIndex = null;
         });
 
-        // REWRITTEN ALGORITHM TO PROPERLY CENTER EXCESS IMAGES IN PDF ROWS
         function createPdfObject() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
@@ -686,21 +828,18 @@
 
             const itemsPerPage = cols * rows;
 
-            // Process page by page
             for (let i = 0; i < finalImages.length; i += itemsPerPage) {
                 if (i > 0) pdf.addPage();
                 
                 const pageImages = finalImages.slice(i, i + itemsPerPage);
 
-                // Process row by row on the current page
                 for (let r = 0; r < rows; r++) {
                     const rowStartIndex = r * cols;
                     if (rowStartIndex >= pageImages.length) break;
 
                     const rowImages = pageImages.slice(rowStartIndex, rowStartIndex + cols);
-                    const itemsInRow = rowImages.length; // Will be less than 'cols' if it's the excess orphan row
+                    const itemsInRow = rowImages.length;
 
-                    // Calculate X dynamically to always CENTER the content of the current row
                     const rowContentWidth = (itemsInRow * cellWidth) + (gap * (itemsInRow - 1));
                     const rowStartX = (pageWidth - rowContentWidth) / 2;
                     const currentY = startY + (r * (cellHeight + gap));
