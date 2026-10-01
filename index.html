@@ -290,6 +290,7 @@
                         <option value="default">Style 1: Centered Glass Pill (Classic)</option>
                         <option value="minimalist">Style 2: Minimalist Corner Badge</option>
                         <option value="topbar">Style 3: Dark Top Glass Banner</option>
+                        <option value="none">Style 4: NO WATERMARK</option>
                     </select>
                 </div>
 
@@ -655,7 +656,7 @@
                 ctx.fillText(formattedDate, currentX, centerY + 13);
 
             } else if (selectedStyle === 'topbar') {
-                // --- STYLE 4: Dark Top Glass Banner ---
+                // --- STYLE 3: Dark Top Glass Banner ---
                 const bannerHeight = 100;
                 
                 // Dark translucent header gradient
@@ -812,7 +813,7 @@
             
             const pageWidth = 210;
             const pageHeight = 297;
-            const marginX = 8, marginY = 8;
+            const marginX = 8, marginY = 20;
             const availableWidth = pageWidth - (marginX * 2);
             const availableHeight = pageHeight - (marginY * 2);
             const aspectRatio = 1.5; // 3:2 landscape ratio
@@ -823,13 +824,18 @@
             const cellHeight = cellWidth / aspectRatio;
 
             const actualGridHeight = (cellHeight * rows) + (gap * (rows - 1));
-            const startY = (pageHeight - actualGridHeight) / 2;
+            const startY = marginY + (availableHeight - actualGridHeight) / 2;
 
             const itemsPerPage = cols * rows;
 
             for (let i = 0; i < finalImages.length; i += itemsPerPage) {
                 if (i > 0) pdf.addPage();
                 
+                // Add header to each PDF page
+                pdf.setFont("times", "normal");
+                pdf.setFontSize(14);
+                pdf.text("DOCUMENTATION", pageWidth / 2, 12, { align: "center" });
+
                 const pageImages = finalImages.slice(i, i + itemsPerPage);
 
                 for (let r = 0; r < rows; r++) {
