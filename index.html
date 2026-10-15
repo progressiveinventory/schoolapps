@@ -400,6 +400,8 @@
         let cropper = null;
         let imageToDeleteIndex = null;
         let activeObjectUrl = null;
+        let isProcessingQueue = false;
+        let currentResolveCrop = null;
 
         // Automatically load logo from local directory
         window.addEventListener('DOMContentLoaded', () => {
@@ -437,78 +439,94 @@
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
             
-            const isProcessing = fileQueue.length > 0;
             fileQueue.push(...files);
-            
-            // Reset input so same images can be re-selected if desired
             imageInput.value = '';
 
-            if (!isProcessing) {
-                processNextFile();
+            if (!isProcessingQueue) {
+                processQueue();
             }
         });
 
-        function processNextFile() {
-            if (activeObjectUrl) {
-                URL.revokeObjectURL(activeObjectUrl);
-                activeObjectUrl = null;
+        async function processQueue() {
+            isProcessingQueue = true;
+
+            while (fileQueue.length > 0) {
+                if (activeObjectUrl) {
+                    URL.revokeObjectURL(activeObjectUrl);
+                    activeObjectUrl = null;
+                }
+
+                statusArea.innerText = `PROCESSING... (${fileQueue.length} REMAINING)`;
+                statusArea.style.color = "var(--neon-pink)";
+
+                const file = fileQueue.shift();
+                activeObjectUrl = URL.createObjectURL(file);
+
+                await handleSingleFile(activeObjectUrl);
             }
 
-            if (fileQueue.length === 0) {
-                statusArea.innerText = `${finalImages.length} IMAGE(S) WATERMARKED & READY!`;
-                statusArea.style.color = "var(--neon-blue)";
-                if (finalImages.length > 0) {
-                    generatePdfBtn.disabled = false;
-                }
-                return;
+            isProcessingQueue = false;
+            statusArea.innerText = `${finalImages.length} IMAGE(S) WATERMARKED & READY!`;
+            statusArea.style.color = "var(--neon-blue)";
+            if (finalImages.length > 0) {
+                generatePdfBtn.disabled = false;
             }
-
-            statusArea.innerText = `PROCESSING... (${fileQueue.length} REMAINING)`;
-            statusArea.style.color = "var(--neon-pink)";
-
-            const file = fileQueue.shift();
-            activeObjectUrl = URL.createObjectURL(file);
-
-            const img = new Image();
-            img.onload = () => {
-                if (img.height > img.width) {
-                    openCropper(activeObjectUrl);
-                } else {
-                    applyWatermark(img);
-                }
-            };
-            img.onerror = () => {
-                console.error("Failed to load selected image file.");
-                processNextFile();
-            };
-            img.src = activeObjectUrl;
         }
 
-        function openCropper(imageSrc) {
-            cropModal.style.display = 'flex';
-            
-            if (cropper) {
-                cropper.destroy();
-                cropper = null;
-            }
-
-            // Wait for image load before initializing cropper to avoid freezes
-            imageToCrop.onload = () => {
-                imageToCrop.onload = null;
-                cropper = new Cropper(imageToCrop, {
-                    aspectRatio: 3 / 2,
-                    viewMode: 1,
-                    autoCropArea: 1,
-                    responsive: true,
-                    checkOrientation: false,
-                    guides: true,
-                    center: true,
-                });
-            };
-            imageToCrop.src = imageSrc;
+        function handleSingleFile(objectUrl) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = async () => {
+                    if (img.height > img.width) {
+                        // Portrait: open modal and await user click on cropSaveBtn
+                        const croppedDataUrl = await openCropperAsync(objectUrl);
+                        const croppedImg = new Image();
+                        croppedImg.onload = () => {
+                            applyWatermark(croppedImg);
+                            resolve();
+                        };
+                        croppedImg.src = croppedDataUrl;
+                    } else {
+                        // Landscape: apply watermark immediately
+                        applyWatermark(img);
+                        resolve();
+                    }
+                };
+                img.onerror = () => {
+                    console.error("Failed to load selected image file.");
+                    resolve();
+                };
+                img.src = objectUrl;
+            });
         }
 
-        cropSaveBtn.addEventListener('click', () => {
+        function openCropperAsync(imageSrc) {
+            return new Promise((resolve) => {
+                currentResolveCrop = resolve;
+                cropModal.style.display = 'flex';
+                
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+
+                imageToCrop.onload = () => {
+                    imageToCrop.onload = null;
+                    cropper = new Cropper(imageToCrop, {
+                        aspectRatio: 3 / 2,
+                        viewMode: 1,
+                        autoCropArea: 1,
+                        responsive: true,
+                        checkOrientation: false,
+                        guides: true,
+                        center: true,
+                    });
+                };
+                imageToCrop.src = imageSrc;
+            });
+        }
+
+        cropSaveBtn.onclick = () => {
             if (!cropper) return;
             
             const croppedCanvas = cropper.getCroppedCanvas({
@@ -522,12 +540,13 @@
                 cropper = null;
             }
 
-            const croppedImg = new Image();
-            croppedImg.onload = () => {
-                applyWatermark(croppedImg);
-            };
-            croppedImg.src = croppedCanvas.toDataURL('image/jpeg', 0.85);
-        });
+            const dataUrl = croppedCanvas.toDataURL('image/jpeg', 0.85);
+            if (currentResolveCrop) {
+                const res = currentResolveCrop;
+                currentResolveCrop = null;
+                res(dataUrl);
+            }
+        };
 
         // Helper function for aesthetic glassmorphic card boxes in canvas
         function drawGlassCard(ctx, x, y, width, height, radius, fillStyle, strokeStyle, shadowColor) {
@@ -686,7 +705,6 @@
                 // --- STYLE 3: Dark Top Glass Banner ---
                 const bannerHeight = 100;
                 
-                // Dark translucent header gradient
                 const grad = ctx.createLinearGradient(0, 0, 0, bannerHeight);
                 grad.addColorStop(0, "rgba(6, 8, 18, 0.92)");
                 grad.addColorStop(1, "rgba(10, 12, 26, 0.78)");
@@ -694,7 +712,6 @@
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, canvas.width, bannerHeight);
                 
-                // Glowing cyan bottom accent line
                 ctx.fillStyle = "#00f3ff";
                 ctx.shadowColor = "#00f3ff";
                 ctx.shadowBlur = 10;
@@ -726,7 +743,6 @@
                 ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
                 ctx.fillText("PEACI - NSTP CWTS DOCUMENTATION", startX, centerY + 16);
                 
-                // Date tag on top right
                 ctx.font = "bold 19px 'Poppins', sans-serif";
                 const dateWidth = ctx.measureText(formattedDate).width;
                 const pillW = dateWidth + 30;
@@ -747,7 +763,6 @@
             finalImages.push(finalDataUrl);
             
             renderGrid();
-            processNextFile();
         }
 
         function renderGrid() {
@@ -856,7 +871,6 @@
             for (let i = 0; i < finalImages.length; i += itemsPerPage) {
                 if (i > 0) pdf.addPage();
                 
-                // Add header to each PDF page
                 pdf.setFont("times", "normal");
                 pdf.setFontSize(14);
                 pdf.text("DOCUMENTATION", pageWidth / 2, 12, { align: "center" });
